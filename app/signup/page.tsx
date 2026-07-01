@@ -1,0 +1,59 @@
+import Link from "next/link";
+import { signup } from "@/lib/actions";
+
+export default async function SignupPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
+  const { error } = await searchParams;
+  return (
+    <div className="mx-auto max-w-sm">
+      <h1 className="text-2xl font-bold">Create your account</h1>
+      <p className="mt-1 text-sm text-slate-600">
+        Already have one?{" "}
+        <Link href="/login" className="text-indigo-600 hover:underline">
+          Log in
+        </Link>
+      </p>
+      {error === "exists" && (
+        <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+          An account with that email already exists.
+        </p>
+      )}
+      {error === "invalid" && (
+        <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+          Please fill all fields. Password must be at least 8 characters.
+        </p>
+      )}
+      <form action={signup} className="card mt-6 space-y-4">
+        <div>
+          <label className="label">I am a…</label>
+          <div className="grid grid-cols-2 gap-2">
+            <label className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium has-checked:border-indigo-600 has-checked:bg-indigo-50 has-checked:text-indigo-700">
+              <input type="radio" name="role" value="teacher" className="sr-only" required />
+              🧑‍🏫 Teacher
+            </label>
+            <label className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium has-checked:border-indigo-600 has-checked:bg-indigo-50 has-checked:text-indigo-700">
+              <input type="radio" name="role" value="student" className="sr-only" />
+              🎓 Student
+            </label>
+          </div>
+        </div>
+        <div>
+          <label className="label" htmlFor="name">Full name</label>
+          <input className="input" id="name" name="name" required />
+        </div>
+        <div>
+          <label className="label" htmlFor="email">Email</label>
+          <input className="input" id="email" name="email" type="email" required />
+        </div>
+        <div>
+          <label className="label" htmlFor="password">Password (min. 8 characters)</label>
+          <input className="input" id="password" name="password" type="password" minLength={8} required />
+        </div>
+        <button className="btn w-full justify-center">Sign up</button>
+      </form>
+    </div>
+  );
+}
