@@ -297,6 +297,7 @@ function ensureDb(): Promise<void> {
       await pool.query(SCHEMA_SQL);
       await seed(pool);
     })().catch((err) => {
+      console.error("Database initialization failed (ensureDb):", err);
       globalThis.__educonnectInit = undefined; // allow retry on next request
       throw err;
     });
@@ -309,9 +310,14 @@ export async function q<T = Record<string, unknown>>(
   text: string,
   params: unknown[] = []
 ): Promise<T[]> {
-  await ensureDb();
-  const result = await getPool().query(text, params);
-  return result.rows as T[];
+  try {
+    await ensureDb();
+    const result = await getPool().query(text, params);
+    return result.rows as T[];
+  } catch (err) {
+    console.error(`Database query failed: "${text}" with params ${JSON.stringify(params)}:`, err);
+    throw err;
+  }
 }
 
 /** Run a query, returning the first row or undefined. */
