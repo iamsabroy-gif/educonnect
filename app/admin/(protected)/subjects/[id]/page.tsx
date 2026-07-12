@@ -4,6 +4,7 @@ import { q, q1 } from "@/lib/db";
 import { fmtDateTime } from "@/lib/format";
 import { adminAddStudent, adminSetEnrollmentStatus, adminReassignTeacher } from "@/lib/admin-actions";
 import { EmailAutocomplete } from "@/components/EmailAutocomplete";
+import { SubmitButton } from "@/components/SubmitButton";
 
 type SubjectRow = {
   id: number;
@@ -39,10 +40,10 @@ export default async function AdminSubjectDetail({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; reassigned?: string }>;
 }) {
   const { id } = await params;
-  const { error } = await searchParams;
+  const { error, reassigned } = await searchParams;
   const subjectId = Number(id);
   if (!Number.isInteger(subjectId)) redirect("/admin/subjects");
 
@@ -90,9 +91,16 @@ export default async function AdminSubjectDetail({
       {error === "invalidteacher" && (
         <p className="banner-error">Please choose a valid teacher account.</p>
       )}
+      {reassigned === "1" && (
+        <p className="banner-success">
+          ✓ Teacher updated — <strong>{subject.teacher_name}</strong> now teaches this class.
+        </p>
+      )}
 
       <div className="card">
-        <h3 className="font-semibold">Teacher</h3>
+        <h3 className="font-semibold">
+          Teacher <span className="font-normal text-slate-500">(currently {subject.teacher_name})</span>
+        </h3>
         <form action={adminReassignTeacher} className="mt-2 flex flex-wrap items-center gap-2">
           <input type="hidden" name="subject_id" value={subjectId} />
           <select className="input max-w-xs" name="teacher_id" defaultValue={subject.teacher_id}>
@@ -102,7 +110,9 @@ export default async function AdminSubjectDetail({
               </option>
             ))}
           </select>
-          <button className="btn">Reassign</button>
+          <SubmitButton pendingLabel="Reassigning…" className="btn">
+            Reassign
+          </SubmitButton>
         </form>
       </div>
 

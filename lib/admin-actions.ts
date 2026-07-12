@@ -57,6 +57,6 @@ export async function adminReassignTeacher(formData: FormData) {
     redirect(`/admin/subjects/${subjectId}?error=invalidteacher`);
   }
   await q("UPDATE subjects SET teacher_id = $1 WHERE id = $2", [teacherId, subjectId]);
-  revalidatePath(`/admin/subjects/${subjectId}`);
   revalidatePath("/admin/subjects");
+  redirect(`/admin/subjects/${subjectId}?reassigned=1`);
 }
