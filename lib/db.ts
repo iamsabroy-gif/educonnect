@@ -3,9 +3,9 @@ import crypto from "crypto";
 
 declare global {
   // eslint-disable-next-line no-var
-  var __educonnectPool: Pool | undefined;
+  var __onlineCoachingPool: Pool | undefined;
   // eslint-disable-next-line no-var
-  var __educonnectInit: Promise<void> | undefined;
+  var __onlineCoachingInit: Promise<void> | undefined;
 }
 
 export function hashPassword(password: string): string {
@@ -33,11 +33,11 @@ export function generateJoinCode(): string {
 
 /** Unguessable Jitsi room slug for a live class. */
 export function generateRoomCode(): string {
-  return "educonnect-" + crypto.randomBytes(8).toString("hex");
+  return "onlinecoaching-" + crypto.randomBytes(8).toString("hex");
 }
 
 function getPool(): Pool {
-  if (globalThis.__educonnectPool) return globalThis.__educonnectPool;
+  if (globalThis.__onlineCoachingPool) return globalThis.__onlineCoachingPool;
   const url = process.env.DATABASE_URL;
   if (!url) {
     throw new Error(
@@ -50,7 +50,7 @@ function getPool(): Pool {
     max: 5, // stay well under free-tier connection limits
     ssl: isLocal ? undefined : { rejectUnauthorized: false },
   });
-  globalThis.__educonnectPool = pool;
+  globalThis.__onlineCoachingPool = pool;
   return pool;
 }
 
@@ -171,7 +171,7 @@ const SCHEMA_SQL = `
 
   ALTER TABLE classes ADD COLUMN IF NOT EXISTS room_code TEXT;
 
-  UPDATE classes SET room_code = 'educonnect-' || substr(md5(random()::text), 1, 16)
+  UPDATE classes SET room_code = 'onlinecoaching-' || substr(md5(random()::text), 1, 16)
   WHERE room_code IS NULL;
 `;
 
@@ -291,18 +291,18 @@ async function seed(pool: Pool) {
 
 /** Idempotent schema + seed, run once per process before the first query. */
 function ensureDb(): Promise<void> {
-  if (!globalThis.__educonnectInit) {
+  if (!globalThis.__onlineCoachingInit) {
     const pool = getPool();
-    globalThis.__educonnectInit = (async () => {
+    globalThis.__onlineCoachingInit = (async () => {
       await pool.query(SCHEMA_SQL);
       await seed(pool);
     })().catch((err) => {
       console.error("Database initialization failed (ensureDb):", err);
-      globalThis.__educonnectInit = undefined; // allow retry on next request
+      globalThis.__onlineCoachingInit = undefined; // allow retry on next request
       throw err;
     });
   }
-  return globalThis.__educonnectInit;
+  return globalThis.__onlineCoachingInit;
 }
 
 /** Run a query, returning all rows. */

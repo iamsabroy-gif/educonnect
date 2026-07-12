@@ -20,7 +20,7 @@ export default async function Home() {
           One place for your classes
         </h1>
         <p className="mt-4 text-lg text-slate-600">
-          EduConnect brings enrollment, announcements, assignments, and discussions
+          OnlineCoaching brings enrollment, announcements, assignments, and discussions
           together — so teachers stop juggling WhatsApp, email, and Zoom.
         </p>
         <div className="mt-8 flex justify-center gap-3">

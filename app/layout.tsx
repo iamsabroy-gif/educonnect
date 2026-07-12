@@ -5,7 +5,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { logout } from "@/lib/actions";
 
 export const metadata: Metadata = {
-  title: "EduConnect",
+  title: "OnlineCoaching",
   description: "One place for teachers and students: classes, assignments, discussions.",
 };
 
@@ -22,9 +22,9 @@ export default async function RootLayout({
           <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
             <Link href={user ? "/dashboard" : "/"} className="flex items-center gap-2">
               <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-sm font-bold text-white">
-                E
+                O
               </span>
-              <span className="text-lg font-semibold tracking-tight">EduConnect</span>
+              <span className="text-lg font-semibold tracking-tight">OnlineCoaching</span>
             </Link>
             {user ? (
               <div className="flex items-center gap-3">

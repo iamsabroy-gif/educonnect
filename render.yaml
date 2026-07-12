@@ -10,4 +10,4 @@ services:
       - key: NODE_VERSION
         value: 22.17.0
       - key: DATABASE_URL
-        sync: false # paste the Supabase session-pooler URL in the Render dashboard
+        sync: false # paste the Neon pooled connection URL in the Render dashboard

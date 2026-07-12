@@ -10,7 +10,7 @@ export type User = {
   role: "teacher" | "student";
 };
 
-const SESSION_COOKIE = "educonnect_session";
+const SESSION_COOKIE = "onlinecoaching_session";
 const SESSION_DAYS = 30;
 
 export async function createSession(userId: number) {
