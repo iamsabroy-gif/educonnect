@@ -293,5 +293,11 @@ export async function sqliteQuery<T = Record<string, unknown>>(
     sql: toSqlitePlaceholders(text),
     args: normalizeArgs(params) as InArgs,
   });
-  return result.rows as unknown as T[];
+  // libSQL rows are array-like hybrids, not plain objects — convert so they
+  // can be serialized/passed to Client Components like any other query result.
+  return result.rows.map((row) => {
+    const plain: Record<string, unknown> = {};
+    for (const col of result.columns) plain[col] = row[col];
+    return plain;
+  }) as unknown as T[];
 }

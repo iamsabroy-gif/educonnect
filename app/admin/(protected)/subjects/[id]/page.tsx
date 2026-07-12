@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { q, q1 } from "@/lib/db";
 import { fmtDateTime } from "@/lib/format";
 import { adminAddStudent, adminSetEnrollmentStatus, adminReassignTeacher } from "@/lib/admin-actions";
+import { EmailAutocomplete } from "@/components/EmailAutocomplete";
 
 type SubjectRow = {
   id: number;
@@ -24,6 +25,11 @@ type EnrollmentRow = {
 
 type TeacherOption = {
   id: number;
+  name: string;
+  email: string;
+};
+
+type StudentOption = {
   name: string;
   email: string;
 };
@@ -56,6 +62,9 @@ export default async function AdminSubjectDetail({
   const teachers = await q<TeacherOption>(
     "SELECT id, name, email FROM users WHERE role = 'teacher' ORDER BY name"
   );
+  const students = await q<StudentOption>(
+    "SELECT name, email FROM users WHERE role = 'student' ORDER BY name"
+  );
 
   const pending = enrollments.filter((e) => e.status === "pending");
   const active = enrollments.filter((e) => e.status === "active");
@@ -74,7 +83,9 @@ export default async function AdminSubjectDetail({
       </div>
 
       {error === "notfound" && (
-        <p className="banner-error">No student account found with that email.</p>
+        <p className="banner-error">
+          No matching student account found — pick a suggestion from the dropdown or enter their exact email.
+        </p>
       )}
       {error === "invalidteacher" && (
         <p className="banner-error">Please choose a valid teacher account.</p>
@@ -97,9 +108,9 @@ export default async function AdminSubjectDetail({
 
       <form action={adminAddStudent} className="card space-y-2">
         <input type="hidden" name="subject_id" value={subjectId} />
-        <label className="label" htmlFor="email">Add a student by email</label>
+        <label className="label">Add a student by name or email</label>
         <div className="flex gap-2">
-          <input className="input" id="email" name="email" type="email" placeholder="student@example.com" required />
+          <EmailAutocomplete options={students} placeholder="Search students…" />
           <button className="btn whitespace-nowrap">Add student</button>
         </div>
       </form>
