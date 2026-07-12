@@ -1,7 +1,7 @@
 "use client";
 
+import { useTransition } from "react";
 import { updateSubject } from "@/lib/actions";
-import { SubmitButton } from "@/components/SubmitButton";
 
 type SubjectData = {
   id: number;
@@ -24,8 +24,18 @@ export function SettingsForm({
   subject: SubjectData;
   error?: string;
 }) {
+  const [isPending, startTransition] = useTransition();
+
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    startTransition(async () => {
+      await updateSubject(formData);
+    });
+  }
+
   return (
-    <form action={updateSubject} className="card space-y-4">
+    <form onSubmit={handleSubmit} className="card space-y-4">
       {error === "upi" && (
         <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
           That doesn&apos;t look like a valid UPI ID (e.g. name@okhdfcbank).
@@ -117,7 +127,14 @@ export function SettingsForm({
         </div>
       </div>
 
-      <SubmitButton className="btn w-full justify-center" pendingLabel="Saving…">Save settings</SubmitButton>
+      <button
+        type="submit"
+        disabled={isPending}
+        className="btn w-full justify-center"
+      >
+        {isPending && <span className="spinner" aria-hidden />}
+        {isPending ? "Saving…" : "Save settings"}
+      </button>
     </form>
   );
 }

@@ -11,13 +11,27 @@ export function buildUpiUri(opts: {
   amount?: number | null;
   note?: string;
 }): string {
-  const params = new URLSearchParams();
-  params.set("pa", opts.payeeUpiId);
-  params.set("pn", opts.payeeName);
-  params.set("cu", "INR");
-  if (opts.amount) params.set("am", opts.amount.toFixed(2));
-  if (opts.note) params.set("tn", opts.note);
-  return `upi://pay?${params.toString().replace(/\+/g, "%20")}`;
+  // Build the UPI deep-link manually.
+  //
+  // Why NOT URLSearchParams.toString():
+  //   • It encodes spaces as '+' (application/x-www-form-urlencoded) which many
+  //     UPI apps reject — we need '%20'.
+  //   • It encodes '@' in the payee VPA (pa=) as '%40', which all major UPI apps
+  //     (GPay, PhonePe, Paytm, BHIM) reject — they require the literal '@'.
+  //
+  // We therefore build each segment manually using encodeURIComponent for
+  // text fields (which always produces '%20' for spaces, not '+') and pass
+  // the VPA (payeeUpiId) as-is because a validated VPA only contains safe
+  // ASCII characters: [a-z0-9.+-] before the '@' and [a-z0-9.-] after it.
+  const parts: string[] = [
+    `pa=${opts.payeeUpiId}`,                        // VPA: do NOT encode '@'
+    `pn=${encodeURIComponent(opts.payeeName)}`,     // payee name: spaces → %20
+    `cu=INR`,
+  ];
+  if (opts.amount) parts.push(`am=${opts.amount.toFixed(2)}`);
+  if (opts.note)   parts.push(`tn=${encodeURIComponent(opts.note)}`);
+
+  return `upi://pay?${parts.join("&")}`;
 }
 
 export async function buildUpiQrDataUrl(upiUri: string): Promise<string> {
