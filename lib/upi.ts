@@ -17,7 +17,7 @@ export function buildUpiUri(opts: {
   params.set("cu", "INR");
   if (opts.amount) params.set("am", opts.amount.toFixed(2));
   if (opts.note) params.set("tn", opts.note);
-  return `upi://pay?${params.toString()}`;
+  return `upi://pay?${params.toString().replace(/\+/g, "%20")}`;
 }
 
 export async function buildUpiQrDataUrl(upiUri: string): Promise<string> {
