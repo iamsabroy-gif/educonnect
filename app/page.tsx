@@ -31,9 +31,6 @@ export default async function Home() {
             Log in
           </Link>
         </div>
-        <p className="mt-4 text-sm text-slate-500">
-          Demo accounts: teacher@demo.com / student@demo.com (password: demo1234)
-        </p>
       </div>
       <div className="mx-auto mt-14 grid max-w-4xl gap-4 sm:grid-cols-2">
         {features.map(([icon, title, desc]) => (
