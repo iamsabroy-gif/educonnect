@@ -19,6 +19,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             <Link href="/admin/users" className="btn-ghost">
               Users
             </Link>
+            <Link href="/admin/subjects" className="btn-ghost">
+              Subjects
+            </Link>
             <Link href="/admin/activity" className="btn-ghost">
               Activity
             </Link>
