@@ -4,6 +4,8 @@ import { q } from "@/lib/db";
 import { fmtDateTime } from "@/lib/format";
 import { acceptInvitation, declineInvitation } from "@/lib/actions";
 import { SubmitButton } from "@/components/SubmitButton";
+import { NavButton } from "@/components/NavButton";
+
 
 
 type TeacherSubject = {
@@ -78,9 +80,9 @@ export default async function Dashboard({
       <div>
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold">Your subjects</h1>
-          <Link href="/subjects/new" className="btn">
+          <NavButton href="/subjects/new" className="btn">
             + New subject
-          </Link>
+          </NavButton>
         </div>
         {welcomeBanner}
         {invitations.length > 0 && (
