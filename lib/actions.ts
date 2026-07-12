@@ -7,6 +7,7 @@ import { createSession, destroySession, requireUser } from "./auth";
 import { getSubjectAccess as subjectAccess } from "./access";
 import { compressBuffer } from "./compression";
 import { isValidUpiId } from "./upi";
+import { sendMail, buildWelcomeEmail, buildClassScheduledEmail } from "./email";
 import {
   verifyAdminCredentials,
   createAdminSession,
@@ -43,6 +44,20 @@ export async function signup(formData: FormData) {
   );
   await q("UPDATE users SET last_login_at = $2 WHERE id = $1", [row!.id, new Date().toISOString()]);
   await createSession(row!.id);
+
+  // Fire-and-forget welcome email — never blocks the redirect
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000";
+  sendMail({
+    to: email,
+    subject: "Welcome to EduConnect! 🎉",
+    html: buildWelcomeEmail({
+      name,
+      email,
+      role,
+      dashboardUrl: `${baseUrl}/dashboard`,
+    }),
+  });
+
   redirect("/dashboard?welcome=1");
 }
 
@@ -114,6 +129,21 @@ export async function createSubject(formData: FormData) {
       !!formData.get("allow_student_threads"),
     ]
   );
+
+  const coTeacherEmail = str(formData, "co_teacher").toLowerCase();
+  if (coTeacherEmail) {
+    const coTeacher = await q1<{ id: number }>(
+      "SELECT id FROM users WHERE email = $1 AND role = 'teacher'",
+      [coTeacherEmail]
+    );
+    if (coTeacher && coTeacher.id !== user.id) {
+      await q(
+        "INSERT INTO subject_teachers (subject_id, teacher_id, status) VALUES ($1, $2, 'pending')",
+        [row!.id, coTeacher.id]
+      );
+    }
+  }
+
   redirect(`/subjects/${row!.id}`);
 }
 
@@ -537,8 +567,8 @@ export async function scheduleClass(formData: FormData) {
   const title = str(formData, "title");
   const startsAt = str(formData, "starts_at");
   if (!title || !startsAt) return;
-  await q(
-    "INSERT INTO classes (subject_id, title, starts_at, duration_min, room_code) VALUES ($1, $2, $3, $4, $5)",
+  const newClass = await q1<{ id: number }>(
+    "INSERT INTO classes (subject_id, title, starts_at, duration_min, room_code) VALUES ($1, $2, $3, $4, $5) RETURNING id",
     [
       subjectId,
       title,
@@ -547,6 +577,64 @@ export async function scheduleClass(formData: FormData) {
       generateRoomCode(),
     ]
   );
+
+  const coTeacherEmail = str(formData, "co_teacher").toLowerCase();
+  if (coTeacherEmail) {
+    const coTeacher = await q1<{ id: number }>(
+      "SELECT id FROM users WHERE email = $1 AND role = 'teacher'",
+      [coTeacherEmail]
+    );
+    if (coTeacher && coTeacher.id !== user.id) {
+      const existing = await q1(
+        "SELECT 1 FROM subject_teachers WHERE subject_id = $1 AND teacher_id = $2",
+        [subjectId, coTeacher.id]
+      );
+      if (!existing) {
+        await q(
+          "INSERT INTO subject_teachers (subject_id, teacher_id, status, class_id) VALUES ($1, $2, 'pending', $3)",
+          [subjectId, coTeacher.id, newClass!.id]
+        );
+      }
+    }
+  }
+
+  // Fire-and-forget class-scheduled emails to all active enrolled students
+  (() => {
+    q<{ email: string; name: string }>(
+      `SELECT u.email, u.name
+       FROM enrollments e
+       JOIN users u ON u.id = e.student_id
+       WHERE e.subject_id = $1 AND e.status = 'active'`,
+      [subjectId]
+    ).then(async (students) => {
+      if (!students.length) return;
+      const subject = await q1<{ name: string }>("SELECT name FROM subjects WHERE id = $1", [subjectId]);
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000";
+      const startsAtFormatted = new Date(startsAt).toLocaleString("en-IN", {
+        dateStyle: "full",
+        timeStyle: "short",
+        timeZone: "Asia/Kolkata",
+      });
+      await Promise.all(
+        students.map((s) =>
+          sendMail({
+            to: s.email,
+            subject: `New class scheduled: ${title}`,
+            html: buildClassScheduledEmail({
+              studentName: s.name,
+              subjectName: subject?.name ?? "your subject",
+              teacherName: user.name,
+              classTitle: title,
+              startsAt: startsAtFormatted,
+              durationMin: num(formData, "duration_min") || 60,
+              classesUrl: `${baseUrl}/subjects/${subjectId}/classes`,
+            }),
+          })
+        )
+      );
+    }).catch((err) => console.error("[email] class notification error:", err));
+  })();
+
   revalidatePath(`/subjects/${subjectId}/classes`);
 }
 
@@ -562,4 +650,28 @@ export async function deleteClass(formData: FormData) {
   if (access?.as !== "teacher") return;
   await q("DELETE FROM classes WHERE id = $1", [classId]);
   revalidatePath(`/subjects/${row.subject_id}/classes`);
+}
+
+// ---------- Invitations ----------
+
+export async function acceptInvitation(formData: FormData) {
+  const user = await requireUser();
+  if (user.role !== "teacher") return;
+  const invitationId = num(formData, "invitation_id");
+  await q(
+    "UPDATE subject_teachers SET status = 'active' WHERE id = $1 AND teacher_id = $2",
+    [invitationId, user.id]
+  );
+  revalidatePath("/dashboard");
+}
+
+export async function declineInvitation(formData: FormData) {
+  const user = await requireUser();
+  if (user.role !== "teacher") return;
+  const invitationId = num(formData, "invitation_id");
+  await q(
+    "DELETE FROM subject_teachers WHERE id = $1 AND teacher_id = $2",
+    [invitationId, user.id]
+  );
+  revalidatePath("/dashboard");
 }

@@ -2,6 +2,9 @@ import Link from "next/link";
 import { requireUser } from "@/lib/auth";
 import { q } from "@/lib/db";
 import { fmtDateTime } from "@/lib/format";
+import { acceptInvitation, declineInvitation } from "@/lib/actions";
+import { SubmitButton } from "@/components/SubmitButton";
+
 
 type TeacherSubject = {
   id: number;
@@ -51,8 +54,24 @@ export default async function Dashboard({
          (SELECT CAST(COUNT(*) AS INTEGER) FROM submissions sub JOIN assignments a ON a.id = sub.assignment_id
            WHERE a.subject_id = s.id AND sub.score IS NULL AND sub.feedback IS NULL) AS ungraded,
          (SELECT MIN(c.starts_at) FROM classes c WHERE c.subject_id = s.id AND c.starts_at > $2) AS next_class
-       FROM subjects s WHERE s.teacher_id = $1 ORDER BY s.archived, s.created_at DESC`,
+       FROM subjects s
+       WHERE s.teacher_id = $1
+          OR EXISTS (
+               SELECT 1 FROM subject_teachers st
+               WHERE st.subject_id = s.id AND st.teacher_id = $1 AND st.status = 'active'
+             )
+       ORDER BY s.archived, s.created_at DESC`,
       [user.id, nowIso]
+    );
+
+    const invitations = await q<{ id: number; subject_id: number; subject_name: string; inviter_name: string; class_title: string | null }>(
+      `SELECT st.id, st.subject_id, s.name AS subject_name, u.name AS inviter_name, c.title AS class_title
+       FROM subject_teachers st
+       JOIN subjects s ON s.id = st.subject_id
+       JOIN users u ON u.id = s.teacher_id
+       LEFT JOIN classes c ON c.id = st.class_id
+       WHERE st.teacher_id = $1 AND st.status = 'pending'`,
+      [user.id]
     );
 
     return (
@@ -64,6 +83,34 @@ export default async function Dashboard({
           </Link>
         </div>
         {welcomeBanner}
+        {invitations.length > 0 && (
+          <div className="mt-6 border-b border-slate-200 pb-6">
+            <h2 className="text-lg font-semibold text-slate-800">🔔 Invitations</h2>
+            <div className="mt-3 grid gap-4 sm:grid-cols-2">
+              {invitations.map((inv) => (
+                <div key={inv.id} className="card border-indigo-200 bg-indigo-50/50">
+                  <h3 className="font-semibold text-slate-900">
+                    {inv.class_title ? `Co-host Class: ${inv.class_title}` : `Co-teach Subject`}
+                  </h3>
+                  <p className="text-sm text-slate-600 mt-1">
+                    <strong>{inv.inviter_name}</strong> invited you to join the class/subject{" "}
+                    <strong>{inv.subject_name}</strong>.
+                  </p>
+                  <div className="mt-3 flex gap-2">
+                    <form action={acceptInvitation}>
+                      <input type="hidden" name="invitation_id" value={inv.id} />
+                      <SubmitButton className="btn py-1 px-3 whitespace-nowrap justify-center w-auto text-xs" pendingLabel="Accepting…">Accept</SubmitButton>
+                    </form>
+                    <form action={declineInvitation}>
+                      <input type="hidden" name="invitation_id" value={inv.id} />
+                      <SubmitButton className="btn-danger py-1 px-3 whitespace-nowrap justify-center w-auto text-xs" pendingLabel="Declining…">Decline</SubmitButton>
+                    </form>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
         {subjects.length === 0 ? (
           <div className="empty-state">
             <p className="text-3xl">🧑‍🏫</p>

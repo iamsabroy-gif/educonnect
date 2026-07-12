@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { signup } from "@/lib/actions";
 import { SubmitButton } from "@/components/SubmitButton";
+import { PasswordField } from "@/components/PasswordField";
+
 
 export default async function SignupPage({
   searchParams,
@@ -47,10 +49,7 @@ export default async function SignupPage({
           <label className="label" htmlFor="email">Email</label>
           <input className="input" id="email" name="email" type="email" required />
         </div>
-        <div>
-          <label className="label" htmlFor="password">Password (min. 8 characters)</label>
-          <input className="input" id="password" name="password" type="password" minLength={8} required />
-        </div>
+        <PasswordField label="Password (min. 8 characters)" minLength={8} />
         <SubmitButton pendingLabel="Creating account…">Sign up</SubmitButton>
       </form>
     </div>

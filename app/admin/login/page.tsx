@@ -1,5 +1,7 @@
 import { adminLogin } from "@/lib/actions";
 import { SubmitButton } from "@/components/SubmitButton";
+import { PasswordField } from "@/components/PasswordField";
+
 
 export default async function AdminLoginPage({
   searchParams,
@@ -20,17 +22,7 @@ export default async function AdminLoginPage({
           <label className="label" htmlFor="username">Username</label>
           <input className="input" id="username" name="username" autoComplete="username" required />
         </div>
-        <div>
-          <label className="label" htmlFor="password">Password</label>
-          <input
-            className="input"
-            id="password"
-            name="password"
-            type="password"
-            autoComplete="current-password"
-            required
-          />
-        </div>
+        <PasswordField autoComplete="current-password" />
         <SubmitButton pendingLabel="Signing in…">Sign in</SubmitButton>
       </form>
     </div>

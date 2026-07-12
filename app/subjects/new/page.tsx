@@ -2,11 +2,19 @@ import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { createSubject } from "@/lib/actions";
 import { SubmitButton } from "@/components/SubmitButton";
+import { q } from "@/lib/db";
+import { EmailAutocomplete } from "@/components/EmailAutocomplete";
+
 
 
 export default async function NewSubjectPage() {
   const user = await requireUser();
   if (user.role !== "teacher") redirect("/dashboard");
+
+  const teachers = await q<{ name: string; email: string }>(
+    "SELECT name, email FROM users WHERE role = 'teacher' AND id != $1",
+    [user.id]
+  );
 
   return (
     <div className="mx-auto max-w-lg">
@@ -41,6 +49,10 @@ export default async function NewSubjectPage() {
           <input type="checkbox" name="allow_student_threads" defaultChecked className="h-4 w-4 rounded" />
           Allow students to start discussion threads
         </label>
+        <div>
+          <label className="label" htmlFor="co_teacher">Additional teacher (optional)</label>
+          <EmailAutocomplete options={teachers} fieldName="co_teacher" placeholder="Search teacher by name or email…" required={false} />
+        </div>
         <SubmitButton className="btn w-full justify-center" pendingLabel="Creating…">Create subject</SubmitButton>
       </form>
     </div>

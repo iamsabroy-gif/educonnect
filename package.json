@@ -9,7 +9,9 @@
   },
   "dependencies": {
     "@libsql/client": "^0.17.4",
+    "@types/nodemailer": "^8.0.1",
     "next": "^15.3.3",
+    "nodemailer": "^9.0.3",
     "pg": "^8.22.0",
     "qrcode": "^1.5.4",
     "react": "^19.1.0",

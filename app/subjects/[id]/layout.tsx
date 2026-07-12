@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { getSubjectAccess } from "@/lib/access";
-import { q1 } from "@/lib/db";
+import { q, q1 } from "@/lib/db";
 import { leaveSubject } from "@/lib/actions";
 import TabNav from "@/components/TabNav";
 import { SubmitButton } from "@/components/SubmitButton";
@@ -24,6 +24,13 @@ export default async function SubjectLayout({
   const teacher = (await q1<{ name: string }>("SELECT name FROM users WHERE id = $1", [
     subject.teacher_id,
   ]))!;
+  const coTeachers = await q<{ name: string }>(
+    `SELECT u.name FROM subject_teachers st
+     JOIN users u ON u.id = st.teacher_id
+     WHERE st.subject_id = $1 AND st.status = 'active'`,
+    [subjectId]
+  );
+  const teacherNames = [teacher.name, ...coTeachers.map((ct) => ct.name)].join(", ");
   const studentCount = (
     await q1<{ c: number }>(
       "SELECT CAST(COUNT(*) AS INTEGER) AS c FROM enrollments WHERE subject_id = $1 AND status = 'active'",
@@ -68,7 +75,7 @@ export default async function SubjectLayout({
             ) : null}
           </div>
           <p className="mt-1 text-sm text-slate-600">
-            {teacher.name}
+            {teacherNames}
             {subject.category ? ` · ${subject.category}` : ""} · 👥 {studentCount} students
             {subject.schedule ? ` · 🗓 ${subject.schedule}` : ""}
           </p>

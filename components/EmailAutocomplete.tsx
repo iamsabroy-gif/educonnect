@@ -8,10 +8,12 @@ export function EmailAutocomplete({
   options,
   fieldName = "email",
   placeholder,
+  required = true,
 }: {
   options: Option[];
   fieldName?: string;
   placeholder?: string;
+  required?: boolean;
 }) {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
@@ -40,7 +42,7 @@ export function EmailAutocomplete({
         autoComplete="off"
         placeholder={placeholder ?? "Search by name or email…"}
         value={query}
-        required
+        required={required}
         onChange={(e) => {
           setQuery(e.target.value);
           setOpen(true);

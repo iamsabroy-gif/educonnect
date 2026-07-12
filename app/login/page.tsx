@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { login } from "@/lib/actions";
 import { SubmitButton } from "@/components/SubmitButton";
+import { PasswordField } from "@/components/PasswordField";
+
 
 export default async function LoginPage({
   searchParams,
@@ -23,10 +25,7 @@ export default async function LoginPage({
           <label className="label" htmlFor="email">Email</label>
           <input className="input" id="email" name="email" type="email" required />
         </div>
-        <div>
-          <label className="label" htmlFor="password">Password</label>
-          <input className="input" id="password" name="password" type="password" required />
-        </div>
+        <PasswordField />
         <SubmitButton pendingLabel="Signing in…">Log in</SubmitButton>
       </form>
     </div>

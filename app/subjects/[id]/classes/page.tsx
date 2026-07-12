@@ -5,6 +5,8 @@ import { q } from "@/lib/db";
 import { fmtDateTime, fmtRelative, toDate } from "@/lib/format";
 import { scheduleClass, deleteClass } from "@/lib/actions";
 import { SubmitButton } from "@/components/SubmitButton";
+import { EmailAutocomplete } from "@/components/EmailAutocomplete";
+
 
 
 type ClassRow = {
@@ -25,6 +27,11 @@ export default async function ClassesPage({
   const subjectId = Number(id);
   const access = await getSubjectAccess(subjectId, user.id, user.role);
   if (!access) redirect("/dashboard");
+
+  const teachers = await q<{ name: string; email: string }>(
+    "SELECT name, email FROM users WHERE role = 'teacher' AND id != $1",
+    [user.id]
+  );
 
   const classes = await q<ClassRow>(
     "SELECT * FROM classes WHERE subject_id = $1 ORDER BY starts_at DESC",
@@ -66,7 +73,11 @@ export default async function ClassesPage({
               <label className="label" htmlFor="duration_min">Duration (minutes)</label>
               <input className="input" id="duration_min" name="duration_min" type="number" min={10} defaultValue={60} />
             </div>
-            <div className="flex items-end">
+            <div>
+              <label className="label" htmlFor="co_teacher">Co-teacher (optional)</label>
+              <EmailAutocomplete options={teachers} fieldName="co_teacher" placeholder="Search teacher…" required={false} />
+            </div>
+            <div className="flex items-end sm:col-span-3">
               <SubmitButton className="btn w-full justify-center" pendingLabel="Scheduling…">Schedule</SubmitButton>
             </div>
           </div>

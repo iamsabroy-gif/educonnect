@@ -153,6 +153,16 @@ const SCHEMA_SQL = `
   ALTER TABLE subjects ADD COLUMN IF NOT EXISTS fee_note TEXT NOT NULL DEFAULT '';
   ALTER TABLE enrollments ADD COLUMN IF NOT EXISTS fee_paid BOOLEAN NOT NULL DEFAULT false;
   ALTER TABLE enrollments ADD COLUMN IF NOT EXISTS fee_paid_at TIMESTAMPTZ;
+
+  CREATE TABLE IF NOT EXISTS subject_teachers (
+    id SERIAL PRIMARY KEY,
+    subject_id INTEGER NOT NULL REFERENCES subjects(id) ON DELETE CASCADE,
+    teacher_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'active')),
+    class_id INTEGER REFERENCES classes(id) ON DELETE SET NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE (subject_id, teacher_id)
+  );
 `;
 
 async function seed(pool: Pool) {

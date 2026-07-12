@@ -32,6 +32,11 @@ export async function getSubjectAccess(
   const subject = await q1<SubjectRow>("SELECT * FROM subjects WHERE id = $1", [subjectId]);
   if (!subject) return null;
   if (subject.teacher_id === userId) return { subject, as: "teacher" };
+  const coTeacher = await q1(
+    "SELECT 1 FROM subject_teachers WHERE subject_id = $1 AND teacher_id = $2 AND status = 'active'",
+    [subjectId, userId]
+  );
+  if (coTeacher) return { subject, as: "teacher" };
   if (role === "student") {
     const enrollment = await q1(
       "SELECT 1 FROM enrollments WHERE subject_id = $1 AND student_id = $2 AND status = 'active'",
