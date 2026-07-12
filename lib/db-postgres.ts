@@ -147,6 +147,12 @@ const SCHEMA_SQL = `
 
   UPDATE classes SET room_code = 'onlinecoaching-' || substr(md5(random()::text), 1, 16)
   WHERE room_code IS NULL;
+
+  ALTER TABLE subjects ADD COLUMN IF NOT EXISTS fee_amount NUMERIC;
+  ALTER TABLE subjects ADD COLUMN IF NOT EXISTS fee_upi_id TEXT NOT NULL DEFAULT '';
+  ALTER TABLE subjects ADD COLUMN IF NOT EXISTS fee_note TEXT NOT NULL DEFAULT '';
+  ALTER TABLE enrollments ADD COLUMN IF NOT EXISTS fee_paid BOOLEAN NOT NULL DEFAULT false;
+  ALTER TABLE enrollments ADD COLUMN IF NOT EXISTS fee_paid_at TIMESTAMPTZ;
 `;
 
 async function seed(pool: Pool) {

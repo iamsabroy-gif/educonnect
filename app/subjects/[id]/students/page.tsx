@@ -3,7 +3,7 @@ import { requireUser } from "@/lib/auth";
 import { getSubjectAccess } from "@/lib/access";
 import { q } from "@/lib/db";
 import { fmtDateTime } from "@/lib/format";
-import { setEnrollmentStatus, addStudentByEmail, regenerateJoinCode } from "@/lib/actions";
+import { setEnrollmentStatus, addStudentByEmail, regenerateJoinCode, setFeePaid } from "@/lib/actions";
 
 type EnrollmentRow = {
   id: number;
@@ -11,6 +11,8 @@ type EnrollmentRow = {
   created_at: Date;
   name: string;
   email: string;
+  fee_paid: boolean;
+  fee_paid_at: Date | null;
 };
 
 export default async function StudentsPage({
@@ -28,11 +30,12 @@ export default async function StudentsPage({
   if (access?.as !== "teacher") redirect(`/subjects/${subjectId}`);
 
   const enrollments = await q<EnrollmentRow>(
-    `SELECT e.id, e.status, e.created_at, u.name, u.email
+    `SELECT e.id, e.status, e.created_at, e.fee_paid, e.fee_paid_at, u.name, u.email
      FROM enrollments e JOIN users u ON u.id = e.student_id
      WHERE e.subject_id = $1 ORDER BY e.status DESC, u.name`,
     [subjectId]
   );
+  const feesConfigured = access.subject.fee_amount != null && !!access.subject.fee_upi_id;
 
   const pending = enrollments.filter((e) => e.status === "pending");
   const active = enrollments.filter((e) => e.status === "active");
@@ -118,11 +121,25 @@ export default async function StudentsPage({
                       {e.email} · joined {fmtDateTime(e.created_at)}
                     </p>
                   </div>
-                  <form action={setEnrollmentStatus}>
-                    <input type="hidden" name="enrollment_id" value={e.id} />
-                    <input type="hidden" name="decision" value="remove" />
-                    <button className="btn-danger">Remove</button>
-                  </form>
+                  <div className="flex items-center gap-2">
+                    {feesConfigured && (
+                      <form action={setFeePaid}>
+                        <input type="hidden" name="enrollment_id" value={e.id} />
+                        <input type="hidden" name="paid" value={e.fee_paid ? "0" : "1"} />
+                        <button
+                          className={e.fee_paid ? "btn-secondary" : "btn"}
+                          title={e.fee_paid_at ? `Paid ${fmtDateTime(e.fee_paid_at)}` : undefined}
+                        >
+                          {e.fee_paid ? "✅ Fee paid" : "💰 Mark fee paid"}
+                        </button>
+                      </form>
+                    )}
+                    <form action={setEnrollmentStatus}>
+                      <input type="hidden" name="enrollment_id" value={e.id} />
+                      <input type="hidden" name="decision" value="remove" />
+                      <button className="btn-danger">Remove</button>
+                    </form>
+                  </div>
                 </li>
               ))}
             </ul>

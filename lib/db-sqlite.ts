@@ -64,6 +64,9 @@ const SCHEMA_SQL = `
     approval_required INTEGER NOT NULL DEFAULT FALSE,
     allow_student_threads INTEGER NOT NULL DEFAULT TRUE,
     archived INTEGER NOT NULL DEFAULT FALSE,
+    fee_amount REAL,
+    fee_upi_id TEXT NOT NULL DEFAULT '',
+    fee_note TEXT NOT NULL DEFAULT '',
     created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
   );
 
@@ -72,6 +75,8 @@ const SCHEMA_SQL = `
     subject_id INTEGER NOT NULL REFERENCES subjects(id) ON DELETE CASCADE,
     student_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('pending', 'active')),
+    fee_paid INTEGER NOT NULL DEFAULT FALSE,
+    fee_paid_at TEXT,
     created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
     UNIQUE (subject_id, student_id)
   );
@@ -267,12 +272,39 @@ async function seed(client: Client) {
   });
 }
 
+/**
+ * SQLite's CREATE TABLE IF NOT EXISTS only applies to brand-new tables, so
+ * columns added to an already-created table (e.g. by a prior deploy) need an
+ * explicit ALTER TABLE — vanilla SQLite has no ADD COLUMN IF NOT EXISTS.
+ */
+async function addColumnIfMissing(
+  client: Client,
+  table: string,
+  column: string,
+  columnDef: string
+): Promise<void> {
+  const info = await client.execute(`PRAGMA table_info(${table})`);
+  const exists = info.rows.some((row) => row.name === column);
+  if (!exists) {
+    await client.execute(`ALTER TABLE ${table} ADD COLUMN ${column} ${columnDef}`);
+  }
+}
+
+async function migrate(client: Client): Promise<void> {
+  await addColumnIfMissing(client, "subjects", "fee_amount", "REAL");
+  await addColumnIfMissing(client, "subjects", "fee_upi_id", "TEXT NOT NULL DEFAULT ''");
+  await addColumnIfMissing(client, "subjects", "fee_note", "TEXT NOT NULL DEFAULT ''");
+  await addColumnIfMissing(client, "enrollments", "fee_paid", "INTEGER NOT NULL DEFAULT FALSE");
+  await addColumnIfMissing(client, "enrollments", "fee_paid_at", "TEXT");
+}
+
 /** Idempotent schema + seed, run once per process before the first query. */
 function ensureDb(): Promise<void> {
   if (!globalThis.__onlineCoachingSqliteInit) {
     const client = getClient();
     globalThis.__onlineCoachingSqliteInit = (async () => {
       await client.executeMultiple(SCHEMA_SQL);
+      await migrate(client);
       await seed(client);
     })().catch((err) => {
       console.error("Database initialization failed (ensureDb):", err);

@@ -44,6 +44,9 @@ export default async function SubjectLayout({
     { href: `${base}/assignments`, label: "📝 Assignments" },
     { href: `${base}/discussions`, label: "💬 Discussions" },
     { href: `${base}/classes`, label: "🎥 Classes" },
+    ...(as === "student" && subject.fee_amount != null && subject.fee_upi_id
+      ? [{ href: `${base}/fees`, label: "💰 Fees" }]
+      : []),
     ...(as === "teacher"
       ? [
           { href: `${base}/students`, label: "👥 Students", badge: pendingRequests },

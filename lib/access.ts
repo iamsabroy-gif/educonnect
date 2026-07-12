@@ -11,6 +11,9 @@ export type SubjectRow = {
   approval_required: boolean;
   allow_student_threads: boolean;
   archived: boolean;
+  fee_amount: number | null;
+  fee_upi_id: string;
+  fee_note: string;
   created_at: Date;
 };
 

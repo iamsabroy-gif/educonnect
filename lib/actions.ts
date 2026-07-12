@@ -6,6 +6,7 @@ import { q, q1, hashPassword, verifyPassword, generateJoinCode, generateRoomCode
 import { createSession, destroySession, requireUser } from "./auth";
 import { getSubjectAccess as subjectAccess } from "./access";
 import { compressBuffer } from "./compression";
+import { isValidUpiId } from "./upi";
 import {
   verifyAdminCredentials,
   createAdminSession,
@@ -121,9 +122,18 @@ export async function updateSubject(formData: FormData) {
   const subjectId = num(formData, "subject_id");
   const access = await subjectAccess(subjectId, user.id, user.role);
   if (access?.as !== "teacher") return;
+
+  const feeAmountRaw = str(formData, "fee_amount");
+  const feeAmount = feeAmountRaw ? Math.max(0, Number(feeAmountRaw)) : null;
+  const feeUpiId = str(formData, "fee_upi_id");
+  if (feeUpiId && !isValidUpiId(feeUpiId)) {
+    redirect(`/subjects/${subjectId}/settings?error=upi`);
+  }
+
   await q(
     `UPDATE subjects SET name = $1, description = $2, category = $3, schedule = $4,
-     approval_required = $5, allow_student_threads = $6, archived = $7 WHERE id = $8`,
+     approval_required = $5, allow_student_threads = $6, archived = $7,
+     fee_amount = $8, fee_upi_id = $9, fee_note = $10 WHERE id = $11`,
     [
       str(formData, "name"),
       str(formData, "description"),
@@ -132,10 +142,31 @@ export async function updateSubject(formData: FormData) {
       !!formData.get("approval_required"),
       !!formData.get("allow_student_threads"),
       !!formData.get("archived"),
+      feeAmount,
+      feeUpiId,
+      str(formData, "fee_note"),
       subjectId,
     ]
   );
   revalidatePath(`/subjects/${subjectId}`, "layout");
+}
+
+export async function setFeePaid(formData: FormData) {
+  const user = await requireUser();
+  const enrollmentId = num(formData, "enrollment_id");
+  const paid = str(formData, "paid") === "1";
+  const enrollment = await q1<{ subject_id: number }>(
+    "SELECT subject_id FROM enrollments WHERE id = $1",
+    [enrollmentId]
+  );
+  if (!enrollment) return;
+  const access = await subjectAccess(enrollment.subject_id, user.id, user.role);
+  if (access?.as !== "teacher") return;
+  await q(
+    "UPDATE enrollments SET fee_paid = $1, fee_paid_at = $2 WHERE id = $3",
+    [paid, paid ? new Date().toISOString() : null, enrollmentId]
+  );
+  revalidatePath(`/subjects/${enrollment.subject_id}/students`);
 }
 
 export async function regenerateJoinCode(formData: FormData) {
