@@ -121,7 +121,7 @@ export default async function AdminSubjectDetail({
         <label className="label">Add a student by name or email</label>
         <div className="flex gap-2">
           <EmailAutocomplete options={students} placeholder="Search students…" />
-          <button className="btn whitespace-nowrap">Add student</button>
+          <SubmitButton className="btn whitespace-nowrap" pendingLabel="Adding…">Add student</SubmitButton>
         </div>
       </form>
 
@@ -142,13 +142,13 @@ export default async function AdminSubjectDetail({
                     <input type="hidden" name="subject_id" value={subjectId} />
                     <input type="hidden" name="enrollment_id" value={e.id} />
                     <input type="hidden" name="decision" value="approve" />
-                    <button className="btn">Approve</button>
+                    <SubmitButton className="btn" pendingLabel="Approving…">Approve</SubmitButton>
                   </form>
                   <form action={adminSetEnrollmentStatus}>
                     <input type="hidden" name="subject_id" value={subjectId} />
                     <input type="hidden" name="enrollment_id" value={e.id} />
                     <input type="hidden" name="decision" value="reject" />
-                    <button className="btn-danger">Reject</button>
+                    <SubmitButton className="btn-danger" pendingLabel="Rejecting…">Reject</SubmitButton>
                   </form>
                 </div>
               </div>
@@ -176,7 +176,7 @@ export default async function AdminSubjectDetail({
                     <input type="hidden" name="subject_id" value={subjectId} />
                     <input type="hidden" name="enrollment_id" value={e.id} />
                     <input type="hidden" name="decision" value="remove" />
-                    <button className="btn-danger">Remove</button>
+                    <SubmitButton className="btn-danger" pendingLabel="Removing…">Remove</SubmitButton>
                   </form>
                 </li>
               ))}

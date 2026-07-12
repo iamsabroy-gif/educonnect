@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { createSubject } from "@/lib/actions";
+import { SubmitButton } from "@/components/SubmitButton";
+
 
 export default async function NewSubjectPage() {
   const user = await requireUser();
@@ -39,7 +41,7 @@ export default async function NewSubjectPage() {
           <input type="checkbox" name="allow_student_threads" defaultChecked className="h-4 w-4 rounded" />
           Allow students to start discussion threads
         </label>
-        <button className="btn w-full justify-center">Create subject</button>
+        <SubmitButton className="btn w-full justify-center" pendingLabel="Creating…">Create subject</SubmitButton>
       </form>
     </div>
   );

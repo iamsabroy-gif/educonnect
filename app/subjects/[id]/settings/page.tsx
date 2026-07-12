@@ -2,6 +2,8 @@ import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { getSubjectAccess } from "@/lib/access";
 import { updateSubject } from "@/lib/actions";
+import { SubmitButton } from "@/components/SubmitButton";
+
 
 export default async function SettingsPage({
   params,
@@ -112,7 +114,7 @@ export default async function SettingsPage({
           </div>
         </div>
 
-        <button className="btn w-full justify-center">Save settings</button>
+        <SubmitButton className="btn w-full justify-center" pendingLabel="Saving…">Save settings</SubmitButton>
       </form>
     </div>
   );

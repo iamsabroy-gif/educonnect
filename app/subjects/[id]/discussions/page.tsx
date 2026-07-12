@@ -5,6 +5,8 @@ import { getSubjectAccess } from "@/lib/access";
 import { q } from "@/lib/db";
 import { fmtRelative } from "@/lib/format";
 import { createThread } from "@/lib/actions";
+import { SubmitButton } from "@/components/SubmitButton";
+
 
 type ThreadRow = {
   id: number;
@@ -75,7 +77,7 @@ export default async function DiscussionsPage({
               placeholder="Describe your question or topic…"
             />
             <div className="flex justify-end">
-              <button className="btn">Post thread</button>
+              <SubmitButton className="btn" pendingLabel="Posting…">Post thread</SubmitButton>
             </div>
           </form>
         </details>

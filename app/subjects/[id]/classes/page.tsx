@@ -4,6 +4,8 @@ import { getSubjectAccess } from "@/lib/access";
 import { q } from "@/lib/db";
 import { fmtDateTime, fmtRelative, toDate } from "@/lib/format";
 import { scheduleClass, deleteClass } from "@/lib/actions";
+import { SubmitButton } from "@/components/SubmitButton";
+
 
 type ClassRow = {
   id: number;
@@ -65,7 +67,7 @@ export default async function ClassesPage({
               <input className="input" id="duration_min" name="duration_min" type="number" min={10} defaultValue={60} />
             </div>
             <div className="flex items-end">
-              <button className="btn w-full justify-center">Schedule</button>
+              <SubmitButton className="btn w-full justify-center" pendingLabel="Scheduling…">Schedule</SubmitButton>
             </div>
           </div>
         </form>
@@ -107,7 +109,7 @@ export default async function ClassesPage({
                     {access.as === "teacher" && (
                       <form action={deleteClass}>
                         <input type="hidden" name="class_id" value={c.id} />
-                        <button className="btn-danger">Cancel</button>
+                        <SubmitButton className="btn-danger" pendingLabel="Cancelling…">Cancel</SubmitButton>
                       </form>
                     )}
                   </div>
@@ -133,7 +135,7 @@ export default async function ClassesPage({
                 {access.as === "teacher" && (
                   <form action={deleteClass}>
                     <input type="hidden" name="class_id" value={c.id} />
-                    <button className="text-xs text-red-500 hover:underline">Remove</button>
+                    <SubmitButton className="text-xs text-red-500 hover:underline" pendingLabel="Removing…">Remove</SubmitButton>
                   </form>
                 )}
               </div>

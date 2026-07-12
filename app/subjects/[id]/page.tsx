@@ -9,6 +9,8 @@ import {
   deleteAnnouncement,
   toggleAck,
 } from "@/lib/actions";
+import { SubmitButton } from "@/components/SubmitButton";
+
 
 type Announcement = {
   id: number;
@@ -60,7 +62,7 @@ export default async function AnnouncementsPage({
             required
           />
           <div className="flex justify-end">
-            <button className="btn">Post announcement</button>
+            <SubmitButton className="btn" pendingLabel="Posting…">Post announcement</SubmitButton>
           </div>
         </form>
       )}
@@ -83,7 +85,7 @@ export default async function AnnouncementsPage({
                 {access.as === "student" ? (
                   <form action={toggleAck}>
                     <input type="hidden" name="announcement_id" value={a.id} />
-                    <button
+                    <SubmitButton
                       className={`rounded-full border px-2.5 py-1 text-xs font-medium ${
                         a.viewer_acked
                           ? "border-indigo-300 bg-indigo-50 text-indigo-700"
@@ -92,7 +94,7 @@ export default async function AnnouncementsPage({
                     >
                       👍 {a.viewer_acked ? "Acknowledged" : "Acknowledge"}
                       {a.ack_count > 0 ? ` · ${a.ack_count}` : ""}
-                    </button>
+                    </SubmitButton>
                   </form>
                 ) : (
                   <span className="rounded-full bg-slate-100 px-2.5 py-1">
@@ -110,12 +112,12 @@ export default async function AnnouncementsPage({
                   <input type="hidden" name="announcement_id" value={a.id} />
                   <textarea className="input" name="body" rows={3} defaultValue={a.body} required />
                   <div className="flex items-center justify-end gap-2">
-                    <button className="btn">Save changes</button>
+                    <SubmitButton className="btn" pendingLabel="Saving…">Save changes</SubmitButton>
                   </div>
                 </form>
                 <form action={deleteAnnouncement} className="mt-2 flex justify-end">
                   <input type="hidden" name="announcement_id" value={a.id} />
-                  <button className="btn-danger">Delete announcement</button>
+                  <SubmitButton className="btn-danger" pendingLabel="Deleting…">Delete announcement</SubmitButton>
                 </form>
               </details>
             )}

@@ -4,6 +4,8 @@ import { getSubjectAccess } from "@/lib/access";
 import { q } from "@/lib/db";
 import { fmtDateTime } from "@/lib/format";
 import { setEnrollmentStatus, addStudentByEmail, regenerateJoinCode, setFeePaid } from "@/lib/actions";
+import { SubmitButton } from "@/components/SubmitButton";
+
 
 type EnrollmentRow = {
   id: number;
@@ -54,9 +56,9 @@ export default async function StudentsPage({
         </div>
         <form action={regenerateJoinCode}>
           <input type="hidden" name="subject_id" value={subjectId} />
-          <button className="btn-secondary" title="Invalidates the old code">
+          <SubmitButton className="btn-secondary" title="Invalidates the old code" pendingLabel="Regenerating…">
             ↻ Regenerate code
-          </button>
+          </SubmitButton>
         </form>
       </div>
 
@@ -70,7 +72,7 @@ export default async function StudentsPage({
         <div className="flex gap-2">
           <input type="hidden" name="subject_id" value={subjectId} />
           <input className="input" id="email" name="email" type="email" placeholder="student@example.com" required />
-          <button className="btn whitespace-nowrap">Add student</button>
+          <SubmitButton className="btn whitespace-nowrap" pendingLabel="Adding…">Add student</SubmitButton>
         </div>
       </form>
 
@@ -90,12 +92,12 @@ export default async function StudentsPage({
                   <form action={setEnrollmentStatus}>
                     <input type="hidden" name="enrollment_id" value={e.id} />
                     <input type="hidden" name="decision" value="approve" />
-                    <button className="btn">Approve</button>
+                    <SubmitButton className="btn" pendingLabel="Approving…">Approve</SubmitButton>
                   </form>
                   <form action={setEnrollmentStatus}>
                     <input type="hidden" name="enrollment_id" value={e.id} />
                     <input type="hidden" name="decision" value="reject" />
-                    <button className="btn-danger">Reject</button>
+                    <SubmitButton className="btn-danger" pendingLabel="Rejecting…">Reject</SubmitButton>
                   </form>
                 </div>
               </div>
@@ -126,18 +128,18 @@ export default async function StudentsPage({
                       <form action={setFeePaid}>
                         <input type="hidden" name="enrollment_id" value={e.id} />
                         <input type="hidden" name="paid" value={e.fee_paid ? "0" : "1"} />
-                        <button
+                        <SubmitButton
                           className={e.fee_paid ? "btn-secondary" : "btn"}
                           title={e.fee_paid_at ? `Paid ${fmtDateTime(e.fee_paid_at)}` : undefined}
                         >
                           {e.fee_paid ? "✅ Fee paid" : "💰 Mark fee paid"}
-                        </button>
+                        </SubmitButton>
                       </form>
                     )}
                     <form action={setEnrollmentStatus}>
                       <input type="hidden" name="enrollment_id" value={e.id} />
                       <input type="hidden" name="decision" value="remove" />
-                      <button className="btn-danger">Remove</button>
+                      <SubmitButton className="btn-danger" pendingLabel="Removing…">Remove</SubmitButton>
                     </form>
                   </div>
                 </li>

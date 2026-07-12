@@ -3,6 +3,8 @@ import { requireUser } from "@/lib/auth";
 import { getSubjectAccess } from "@/lib/access";
 import { createAssignment } from "@/lib/actions";
 import { toLocalInputValue } from "@/lib/format";
+import { SubmitButton } from "@/components/SubmitButton";
+
 
 export default async function NewAssignmentPage({
   params,
@@ -56,7 +58,7 @@ export default async function NewAssignmentPage({
             <option value="block">Block after due date</option>
           </select>
         </div>
-        <button className="btn w-full justify-center">Publish assignment</button>
+        <SubmitButton className="btn w-full justify-center" pendingLabel="Publishing…">Publish assignment</SubmitButton>
       </form>
     </div>
   );

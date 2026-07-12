@@ -5,6 +5,8 @@ import { getSubjectAccess } from "@/lib/access";
 import { q, q1 } from "@/lib/db";
 import { fmtRelative } from "@/lib/format";
 import { replyToThread, toggleVote, moderateThread, deleteReply } from "@/lib/actions";
+import { SubmitButton } from "@/components/SubmitButton";
+
 
 type Thread = {
   id: number;
@@ -88,7 +90,7 @@ export default async function ThreadPage({
                 <form key={m} action={moderateThread}>
                   <input type="hidden" name="thread_id" value={threadId} />
                   <input type="hidden" name="moderation" value={m} />
-                  <button className={m === "delete" ? "btn-danger" : "btn-secondary"}>
+                  <SubmitButton className={m === "delete" ? "btn-danger" : "btn-secondary"}>
                     {m === "pin"
                       ? thread!.pinned
                         ? "Unpin"
@@ -98,7 +100,7 @@ export default async function ThreadPage({
                           ? "Unlock"
                           : "Lock"
                         : "Delete"}
-                  </button>
+                  </SubmitButton>
                 </form>
               ))}
             </div>
@@ -131,7 +133,7 @@ export default async function ThreadPage({
                   <input type="hidden" name="thread_id" value={threadId} />
                   <input type="hidden" name="parent_id" value={r.id} />
                   <input className="input" name="body" placeholder="Write a reply…" required />
-                  <button className="btn">Post</button>
+                  <SubmitButton className="btn" pendingLabel="Posting…">Post</SubmitButton>
                 </form>
               </details>
             )}
@@ -145,7 +147,7 @@ export default async function ThreadPage({
           <label className="label" htmlFor="body">Add to the discussion</label>
           <textarea className="input" id="body" name="body" rows={3} required />
           <div className="flex justify-end">
-            <button className="btn">Post reply</button>
+            <SubmitButton className="btn" pendingLabel="Posting…">Post reply</SubmitButton>
           </div>
         </form>
       ) : (
@@ -182,7 +184,7 @@ function ReplyBlock({
       <div className="mt-2 flex items-center gap-2">
         <form action={toggleVote}>
           <input type="hidden" name="reply_id" value={reply.id} />
-          <button
+          <SubmitButton
             className={`rounded-full border px-2 py-0.5 text-xs font-medium ${
               reply.viewer_voted
                 ? "border-indigo-300 bg-indigo-50 text-indigo-700"
@@ -190,12 +192,12 @@ function ReplyBlock({
             }`}
           >
             ▲ {reply.votes}
-          </button>
+          </SubmitButton>
         </form>
         {(isTeacher || reply.author_id === viewer.id) && (
           <form action={deleteReply}>
             <input type="hidden" name="reply_id" value={reply.id} />
-            <button className="text-xs text-red-500 hover:underline">Delete</button>
+            <SubmitButton className="text-xs text-red-500 hover:underline" pendingLabel="Deleting…">Delete</SubmitButton>
           </form>
         )}
       </div>

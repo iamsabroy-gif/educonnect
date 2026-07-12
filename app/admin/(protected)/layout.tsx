@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { requireAdminSession } from "@/lib/admin-auth";
 import { adminLogout } from "@/lib/actions";
+import { SubmitButton } from "@/components/SubmitButton";
+
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   await requireAdminSession();
@@ -32,7 +34,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             ← Back to app
           </Link>
           <form action={adminLogout}>
-            <button className="btn-secondary">Log out</button>
+            <SubmitButton className="btn-secondary" pendingLabel="Logging out…">Log out</SubmitButton>
           </form>
         </div>
       </div>

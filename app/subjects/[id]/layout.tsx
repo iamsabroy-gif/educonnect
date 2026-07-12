@@ -4,6 +4,8 @@ import { getSubjectAccess } from "@/lib/access";
 import { q1 } from "@/lib/db";
 import { leaveSubject } from "@/lib/actions";
 import TabNav from "@/components/TabNav";
+import { SubmitButton } from "@/components/SubmitButton";
+
 
 export default async function SubjectLayout({
   children,
@@ -84,7 +86,7 @@ export default async function SubjectLayout({
         ) : (
           <form action={leaveSubject}>
             <input type="hidden" name="subject_id" value={subjectId} />
-            <button className="btn-danger">Leave subject</button>
+            <SubmitButton className="btn-danger" pendingLabel="Leaving…">Leave subject</SubmitButton>
           </form>
         )}
       </div>

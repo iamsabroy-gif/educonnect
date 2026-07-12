@@ -3,6 +3,7 @@ import Link from "next/link";
 import "./globals.css";
 import { getCurrentUser } from "@/lib/auth";
 import { logout } from "@/lib/actions";
+import { SubmitButton } from "@/components/SubmitButton";
 
 export const metadata: Metadata = {
   title: "OnlineCoaching",
@@ -41,7 +42,7 @@ export default async function RootLayout({
                   </span>
                 </span>
                 <form action={logout}>
-                  <button className="btn-secondary">Log out</button>
+                  <SubmitButton className="btn-secondary" pendingLabel="Logging out…">Log out</SubmitButton>
                 </form>
               </div>
             ) : (

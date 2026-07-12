@@ -4,6 +4,8 @@ import { getSubjectAccess } from "@/lib/access";
 import { q, q1 } from "@/lib/db";
 import { fmtDateTime, fmtRelative, isPast } from "@/lib/format";
 import { submitAssignment, gradeSubmission } from "@/lib/actions";
+import { SubmitButton } from "@/components/SubmitButton";
+
 
 type Assignment = {
   id: number;
@@ -173,7 +175,7 @@ async function StudentView({
             <input className="input" id="file" name="file" type="file" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.txt" />
           </div>
           <div className="flex justify-end">
-            <button className="btn">{submission ? "Resubmit" : "Submit"}</button>
+            <SubmitButton className="btn" pendingLabel="Uploading…">{submission ? "Resubmit" : "Submit"}</SubmitButton>
           </div>
         </form>
       ) : (
@@ -275,7 +277,7 @@ async function TeacherTracker({
                         />
                       </div>
                       <div className="flex justify-end">
-                        <button className="btn">Save</button>
+                        <SubmitButton className="btn" pendingLabel="Saving…">Save</SubmitButton>
                       </div>
                     </form>
                   </details>

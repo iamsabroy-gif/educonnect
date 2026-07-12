@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { joinSubject } from "@/lib/actions";
+import { SubmitButton } from "@/components/SubmitButton";
+
 
 export default async function JoinPage({
   searchParams,
@@ -36,7 +38,7 @@ export default async function JoinPage({
             required
           />
         </div>
-        <button className="btn w-full justify-center">Join</button>
+        <SubmitButton className="btn w-full justify-center" pendingLabel="Joining…">Join</SubmitButton>
       </form>
     </div>
   );
