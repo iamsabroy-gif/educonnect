@@ -24,7 +24,7 @@ export default async function SubjectLayout({
   ]))!;
   const studentCount = (
     await q1<{ c: number }>(
-      "SELECT COUNT(*)::int AS c FROM enrollments WHERE subject_id = $1 AND status = 'active'",
+      "SELECT CAST(COUNT(*) AS INTEGER) AS c FROM enrollments WHERE subject_id = $1 AND status = 'active'",
       [subjectId]
     )
   )!.c;
@@ -32,7 +32,7 @@ export default async function SubjectLayout({
     as === "teacher"
       ? (
           await q1<{ c: number }>(
-            "SELECT COUNT(*)::int AS c FROM enrollments WHERE subject_id = $1 AND status = 'pending'",
+            "SELECT CAST(COUNT(*) AS INTEGER) AS c FROM enrollments WHERE subject_id = $1 AND status = 'pending'",
             [subjectId]
           )
         )!.c

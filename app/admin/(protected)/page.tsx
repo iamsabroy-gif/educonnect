@@ -14,19 +14,22 @@ type Totals = {
 };
 
 export default async function AdminOverview() {
-  const t = await q1<Totals>(`
-    SELECT
-      (SELECT COUNT(*)::int FROM users WHERE role = 'teacher') AS teachers,
-      (SELECT COUNT(*)::int FROM users WHERE role = 'student') AS students,
-      (SELECT COUNT(*)::int FROM subjects WHERE archived = false) AS subjects_active,
-      (SELECT COUNT(*)::int FROM subjects WHERE archived = true) AS subjects_archived,
-      (SELECT COUNT(*)::int FROM submissions) AS submissions,
-      (SELECT COUNT(*)::int FROM threads) AS threads,
-      (SELECT COUNT(*)::int FROM replies WHERE deleted = false) AS replies,
-      (SELECT COUNT(*)::int FROM classes) AS classes,
-      (SELECT COUNT(*)::int FROM users WHERE created_at > now() - interval '7 days') AS signups_7d,
-      (SELECT COUNT(*)::int FROM users WHERE created_at > now() - interval '30 days') AS signups_30d
-  `);
+  const cutoff7d = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const cutoff30d = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+  const t = await q1<Totals>(
+    `SELECT
+      (SELECT CAST(COUNT(*) AS INTEGER) FROM users WHERE role = 'teacher') AS teachers,
+      (SELECT CAST(COUNT(*) AS INTEGER) FROM users WHERE role = 'student') AS students,
+      (SELECT CAST(COUNT(*) AS INTEGER) FROM subjects WHERE archived = false) AS subjects_active,
+      (SELECT CAST(COUNT(*) AS INTEGER) FROM subjects WHERE archived = true) AS subjects_archived,
+      (SELECT CAST(COUNT(*) AS INTEGER) FROM submissions) AS submissions,
+      (SELECT CAST(COUNT(*) AS INTEGER) FROM threads) AS threads,
+      (SELECT CAST(COUNT(*) AS INTEGER) FROM replies WHERE deleted = false) AS replies,
+      (SELECT CAST(COUNT(*) AS INTEGER) FROM classes) AS classes,
+      (SELECT CAST(COUNT(*) AS INTEGER) FROM users WHERE created_at > $1) AS signups_7d,
+      (SELECT CAST(COUNT(*) AS INTEGER) FROM users WHERE created_at > $2) AS signups_30d`,
+    [cutoff7d, cutoff30d]
+  );
 
   const cards: [string, number, string][] = [
     ["👩‍🏫", t!.teachers, "Teachers"],

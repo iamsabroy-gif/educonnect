@@ -8,6 +8,7 @@
     "start": "next start"
   },
   "dependencies": {
+    "@libsql/client": "^0.17.4",
     "next": "^15.3.3",
     "pg": "^8.22.0",
     "react": "^19.1.0",

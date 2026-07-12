@@ -36,12 +36,12 @@ export default async function DiscussionsPage({
   const threads = await q<ThreadRow>(
     `SELECT t.id, t.title, t.pinned, t.locked, t.created_at,
        u.name AS author_name, u.role AS author_role,
-       (SELECT COUNT(*)::int FROM replies r WHERE r.thread_id = t.id AND r.deleted = false) AS reply_count,
+       (SELECT CAST(COUNT(*) AS INTEGER) FROM replies r WHERE r.thread_id = t.id AND r.deleted = false) AS reply_count,
        COALESCE ((SELECT MAX(r.created_at) FROM replies r WHERE r.thread_id = t.id), t.created_at) AS last_activity
      FROM threads t JOIN users u ON u.id = t.author_id
      WHERE t.subject_id = $1
-       AND ($2 = '' OR t.title ILIKE '%' || $2 || '%' OR t.body ILIKE '%' || $2 || '%'
-            OR EXISTS (SELECT 1 FROM replies r WHERE r.thread_id = t.id AND r.deleted = false AND r.body ILIKE '%' || $2 || '%'))
+       AND ($2 = '' OR LOWER(t.title) LIKE LOWER('%' || $2 || '%') OR LOWER(t.body) LIKE LOWER('%' || $2 || '%')
+            OR EXISTS (SELECT 1 FROM replies r WHERE r.thread_id = t.id AND r.deleted = false AND LOWER(r.body) LIKE LOWER('%' || $2 || '%')))
      ORDER BY t.pinned DESC, last_activity DESC`,
     [subjectId, search]
   );

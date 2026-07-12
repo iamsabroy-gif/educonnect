@@ -41,16 +41,18 @@ export default async function Dashboard({
     </p>
   );
 
+  const nowIso = new Date().toISOString();
+
   if (user.role === "teacher") {
     const subjects = await q<TeacherSubject>(
       `SELECT s.*,
-         (SELECT COUNT(*)::int FROM enrollments e WHERE e.subject_id = s.id AND e.status = 'active') AS student_count,
-         (SELECT COUNT(*)::int FROM enrollments e WHERE e.subject_id = s.id AND e.status = 'pending') AS pending_requests,
-         (SELECT COUNT(*)::int FROM submissions sub JOIN assignments a ON a.id = sub.assignment_id
+         (SELECT CAST(COUNT(*) AS INTEGER) FROM enrollments e WHERE e.subject_id = s.id AND e.status = 'active') AS student_count,
+         (SELECT CAST(COUNT(*) AS INTEGER) FROM enrollments e WHERE e.subject_id = s.id AND e.status = 'pending') AS pending_requests,
+         (SELECT CAST(COUNT(*) AS INTEGER) FROM submissions sub JOIN assignments a ON a.id = sub.assignment_id
            WHERE a.subject_id = s.id AND sub.score IS NULL AND sub.feedback IS NULL) AS ungraded,
-         (SELECT MIN(c.starts_at) FROM classes c WHERE c.subject_id = s.id AND c.starts_at > now()) AS next_class
+         (SELECT MIN(c.starts_at) FROM classes c WHERE c.subject_id = s.id AND c.starts_at > $2) AS next_class
        FROM subjects s WHERE s.teacher_id = $1 ORDER BY s.archived, s.created_at DESC`,
-      [user.id]
+      [user.id, nowIso]
     );
 
     return (
@@ -114,15 +116,15 @@ export default async function Dashboard({
   // Student dashboard
   const subjects = await q<StudentSubject>(
     `SELECT s.id, s.name, s.category, s.schedule, u.name AS teacher_name, e.status,
-       (SELECT COUNT(*)::int FROM assignments a WHERE a.subject_id = s.id AND a.due_at > now()
+       (SELECT CAST(COUNT(*) AS INTEGER) FROM assignments a WHERE a.subject_id = s.id AND a.due_at > $2
          AND NOT EXISTS (SELECT 1 FROM submissions sub WHERE sub.assignment_id = a.id AND sub.student_id = e.student_id)) AS open_assignments,
-       (SELECT MIN(c.starts_at) FROM classes c WHERE c.subject_id = s.id AND c.starts_at > now()) AS next_class
+       (SELECT MIN(c.starts_at) FROM classes c WHERE c.subject_id = s.id AND c.starts_at > $2) AS next_class
      FROM enrollments e
      JOIN subjects s ON s.id = e.subject_id
      JOIN users u ON u.id = s.teacher_id
      WHERE e.student_id = $1 AND s.archived = false
      ORDER BY e.created_at DESC`,
-    [user.id]
+    [user.id, nowIso]
   );
 
   return (

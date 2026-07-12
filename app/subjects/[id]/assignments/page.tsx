@@ -28,7 +28,7 @@ export default async function AssignmentsPage({
 
   const assignments = await q<AssignmentRow>(
     `SELECT a.id, a.title, a.due_at, a.max_marks,
-       (SELECT COUNT(*)::int FROM submissions s WHERE s.assignment_id = a.id) AS submitted_count,
+       (SELECT CAST(COUNT(*) AS INTEGER) FROM submissions s WHERE s.assignment_id = a.id) AS submitted_count,
        EXISTS (SELECT 1 FROM submissions s WHERE s.assignment_id = a.id AND s.student_id = $1) AS viewer_submitted,
        COALESCE ((SELECT s.is_late FROM submissions s WHERE s.assignment_id = a.id AND s.student_id = $1), false) AS viewer_late
      FROM assignments a WHERE a.subject_id = $2 ORDER BY a.due_at DESC`,
@@ -37,7 +37,7 @@ export default async function AssignmentsPage({
 
   const studentCount = (
     await q1<{ c: number }>(
-      "SELECT COUNT(*)::int AS c FROM enrollments WHERE subject_id = $1 AND status = 'active'",
+      "SELECT CAST(COUNT(*) AS INTEGER) AS c FROM enrollments WHERE subject_id = $1 AND status = 'active'",
       [subjectId]
     )
   )!.c;

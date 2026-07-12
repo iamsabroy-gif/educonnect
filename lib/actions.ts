@@ -39,7 +39,7 @@ export async function signup(formData: FormData) {
     "INSERT INTO users (name, email, password_hash, role) VALUES ($1, $2, $3, $4) RETURNING id",
     [name, email, hashPassword(password), role]
   );
-  await q("UPDATE users SET last_login_at = now() WHERE id = $1", [row!.id]);
+  await q("UPDATE users SET last_login_at = $2 WHERE id = $1", [row!.id, new Date().toISOString()]);
   await createSession(row!.id);
   redirect("/dashboard?welcome=1");
 }
@@ -54,7 +54,7 @@ export async function login(formData: FormData) {
   if (!user || !verifyPassword(password, user.password_hash)) {
     redirect("/login?error=1");
   }
-  await q("UPDATE users SET last_login_at = now() WHERE id = $1", [user!.id]);
+  await q("UPDATE users SET last_login_at = $2 WHERE id = $1", [user!.id, new Date().toISOString()]);
   await createSession(user!.id);
   redirect("/dashboard?welcome=1");
 }
@@ -248,7 +248,11 @@ export async function updateAnnouncement(formData: FormData) {
   if (access?.as !== "teacher") return;
   const body = str(formData, "body");
   if (!body) return;
-  await q("UPDATE announcements SET body = $1, edited_at = now() WHERE id = $2", [body, id]);
+  await q("UPDATE announcements SET body = $1, edited_at = $3 WHERE id = $2", [
+    body,
+    id,
+    new Date().toISOString(),
+  ]);
   revalidatePath(`/subjects/${row.subject_id}`);
 }
 
@@ -354,15 +358,15 @@ export async function submitAssignment(formData: FormData) {
   if (!text && !fileName) return;
 
   await q(
-    `INSERT INTO submissions (assignment_id, student_id, text, file_name, file_data, is_late)
-     VALUES ($1, $2, $3, $4, $5, $6)
+    `INSERT INTO submissions (assignment_id, student_id, text, file_name, file_data, is_late, submitted_at)
+     VALUES ($1, $2, $3, $4, $5, $6, $7)
      ON CONFLICT (assignment_id, student_id) DO UPDATE SET
        text = EXCLUDED.text,
        file_name = COALESCE(EXCLUDED.file_name, submissions.file_name),
        file_data = COALESCE(EXCLUDED.file_data, submissions.file_data),
        is_late = EXCLUDED.is_late,
-       submitted_at = now()`,
-    [assignmentId, user.id, text, fileName, fileData, isLate]
+       submitted_at = EXCLUDED.submitted_at`,
+    [assignmentId, user.id, text, fileName, fileData, isLate, new Date().toISOString()]
   );
   revalidatePath(`/subjects/${assignment.subject_id}/assignments/${assignmentId}`);
 }

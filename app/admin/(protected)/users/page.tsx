@@ -32,14 +32,14 @@ export default async function AdminUsers({
 
   const rows = await q<UserRow>(
     `SELECT u.id, u.name, u.email, u.role, u.created_at, u.last_login_at,
-       (SELECT COUNT(*)::int FROM subjects s WHERE s.teacher_id = u.id) AS subjects_taught,
-       (SELECT COUNT(*)::int FROM enrollments e WHERE e.student_id = u.id AND e.status = 'active') AS subjects_enrolled,
-       (SELECT COUNT(*)::int FROM submissions sub WHERE sub.student_id = u.id) AS submissions_count,
-       (SELECT COUNT(*)::int FROM threads th WHERE th.author_id = u.id) +
-       (SELECT COUNT(*)::int FROM replies r WHERE r.author_id = u.id AND r.deleted = false) AS posts_count
+       (SELECT CAST(COUNT(*) AS INTEGER) FROM subjects s WHERE s.teacher_id = u.id) AS subjects_taught,
+       (SELECT CAST(COUNT(*) AS INTEGER) FROM enrollments e WHERE e.student_id = u.id AND e.status = 'active') AS subjects_enrolled,
+       (SELECT CAST(COUNT(*) AS INTEGER) FROM submissions sub WHERE sub.student_id = u.id) AS submissions_count,
+       (SELECT CAST(COUNT(*) AS INTEGER) FROM threads th WHERE th.author_id = u.id) +
+       (SELECT CAST(COUNT(*) AS INTEGER) FROM replies r WHERE r.author_id = u.id AND r.deleted = false) AS posts_count
      FROM users u
-     WHERE ($1::text IS NULL OR u.name ILIKE '%' || $1 || '%' OR u.email ILIKE '%' || $1 || '%')
-       AND ($2::text IS NULL OR u.role = $2)
+     WHERE (CAST($1 AS TEXT) IS NULL OR LOWER(u.name) LIKE LOWER('%' || $1 || '%') OR LOWER(u.email) LIKE LOWER('%' || $1 || '%'))
+       AND (CAST($2 AS TEXT) IS NULL OR u.role = $2)
      ORDER BY u.created_at DESC`,
     [search || null, roleFilter]
   );

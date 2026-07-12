@@ -5,13 +5,22 @@ Teacher–student learning platform (MVP of `PRD-Teaching-App.md`): subject enro
 ## Stack
 
 - Next.js 15 (App Router, server components + server actions — no separate API layer)
-- PostgreSQL via `pg` — same engine locally (Homebrew) and in production (Neon free tier)
+- Toggleable database backend: PostgreSQL via `pg` (Neon free tier) or Turso/SQLite via `@libsql/client` — see Database driver toggle below
 - Tailwind CSS v4
 - Session auth with scrypt-hashed passwords (`lib/auth.ts`)
 
-All mutations live in `lib/actions.ts`; every action re-checks the caller's role and subject membership server-side (`lib/access.ts`), per the PRD's requirement that permissions are enforced beyond the UI. Submission file uploads (≤5 MB) are stored as `BYTEA` in Postgres so there is no dependence on local disk — required because Render's free tier has an ephemeral filesystem.
+All mutations live in `lib/actions.ts`; every action re-checks the caller's role and subject membership server-side (`lib/access.ts`), per the PRD's requirement that permissions are enforced beyond the UI. Submission file uploads (≤5 MB) are stored as a binary column (`BYTEA` on Postgres, `BLOB` on SQLite) so there is no dependence on local disk — required because Render's free tier has an ephemeral filesystem.
 
-The app creates its schema and demo seed data automatically on the first request against an empty database (`lib/db.ts`), so a fresh Postgres — local or cloud — needs no manual setup.
+The app creates its schema and demo seed data automatically on the first request against an empty database (`lib/db-postgres.ts` / `lib/db-sqlite.ts`), so a fresh database — local or cloud, either backend — needs no manual setup.
+
+## Database driver toggle
+
+`DB_DRIVER` selects the backend: `postgres` (default) or `turso`. This is a build-time/redeploy toggle, not a live in-app switch — same as changing `DATABASE_URL` today.
+
+- `lib/db.ts` is a thin dispatcher; `lib/db-postgres.ts` and `lib/db-sqlite.ts` are the two adapters, each with its own schema (Postgres: `SERIAL`/`TIMESTAMPTZ`/`BYTEA`; SQLite: `INTEGER PRIMARY KEY AUTOINCREMENT`/ISO-8601 `TEXT`/`BLOB`) and seed logic.
+- Query call sites use one shared syntax (`$1, $2, …` placeholders, `CAST(x AS INTEGER)` instead of `::int`, `LOWER(col) LIKE LOWER(pattern)` instead of `ILIKE`, JS-computed timestamps bound as parameters instead of inline `now()`/`interval`) so the same SQL text runs on both engines — the SQLite adapter translates `$N` → `?N` and coerces booleans to `0`/`1` internally.
+- For Postgres: set `DATABASE_URL` (see below).
+- For Turso: set `TURSO_DATABASE_URL` + `TURSO_AUTH_TOKEN`. For local testing with no Turso account, use a local file instead: `TURSO_DATABASE_URL=file:./data/local.db` (leave `TURSO_AUTH_TOKEN` unset).
 
 ## Admin console
 
@@ -56,7 +65,8 @@ Database: Neon free-tier project `neondb` (us-east-1). The app connects directly
 Free-tier behavior to expect:
 
 - **Render:** service spins down after ~15 min idle; the first request after that takes ~50 s (cold start). 750 instance-hours/month.
-- **Neon:** compute auto-suspends after ~5 min idle and resumes on the next query (a few hundred ms delay). 0.5 GB storage on the free plan (same cap as Supabase free tier) — keep an eye on usage (`SELECT pg_size_pretty(pg_database_size(current_database()));`); upgrade to Neon Launch ($19/mo, 10 GB) if you approach the limit.
+- **Neon:** compute auto-suspends after ~5 min idle and resumes on the next query (a few hundred ms delay). 0.5 GB storage on the free plan (same cap as Supabase free tier) — keep an eye on usage (`SELECT pg_size_pretty(pg_database_size(current_database()));`). The paid Launch/Scale tiers have no fixed monthly fee — pure pay-as-you-go ($0.35/GB-month storage, $0.106/CU-hour compute) — cheap for low/spiky usage, but per-GB storage is actually pricier than Supabase's Pro overage rate at real scale.
+- **Turso** (if `DB_DRIVER=turso`): free tier is 5GB storage — 10x Neon/Supabase's 0.5GB — with usage-based overage ($1/GB) beyond that.
 
 ## Scope notes vs. the PRD
 

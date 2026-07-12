@@ -32,7 +32,7 @@ export default async function AnnouncementsPage({
 
   const announcements = await q<Announcement>(
     `SELECT a.*,
-       (SELECT COUNT(*)::int FROM announcement_acks k WHERE k.announcement_id = a.id) AS ack_count,
+       (SELECT CAST(COUNT(*) AS INTEGER) FROM announcement_acks k WHERE k.announcement_id = a.id) AS ack_count,
        EXISTS (SELECT 1 FROM announcement_acks k WHERE k.announcement_id = a.id AND k.user_id = $1) AS viewer_acked
      FROM announcements a WHERE a.subject_id = $2 ORDER BY a.created_at DESC`,
     [user.id, subjectId]
@@ -40,7 +40,7 @@ export default async function AnnouncementsPage({
 
   const studentCount = (
     await q1<{ c: number }>(
-      "SELECT COUNT(*)::int AS c FROM enrollments WHERE subject_id = $1 AND status = 'active'",
+      "SELECT CAST(COUNT(*) AS INTEGER) AS c FROM enrollments WHERE subject_id = $1 AND status = 'active'",
       [subjectId]
     )
   )!.c;

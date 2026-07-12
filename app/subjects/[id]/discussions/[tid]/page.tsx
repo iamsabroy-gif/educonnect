@@ -52,7 +52,7 @@ export default async function ThreadPage({
 
   const replies = await q<Reply>(
     `SELECT r.*, u.name AS author_name, u.role AS author_role,
-       (SELECT COUNT(*)::int FROM reply_votes v WHERE v.reply_id = r.id) AS votes,
+       (SELECT CAST(COUNT(*) AS INTEGER) FROM reply_votes v WHERE v.reply_id = r.id) AS votes,
        EXISTS (SELECT 1 FROM reply_votes v WHERE v.reply_id = r.id AND v.user_id = $1) AS viewer_voted
      FROM replies r JOIN users u ON u.id = r.author_id
      WHERE r.thread_id = $2
