@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { q, q1, hashPassword, verifyPassword, generateJoinCode, generateRoomCode } from "./db";
 import { createSession, destroySession, requireUser } from "./auth";
 import { getSubjectAccess as subjectAccess } from "./access";
+import { compressBuffer } from "./compression";
 import {
   verifyAdminCredentials,
   createAdminSession,
@@ -353,7 +354,7 @@ export async function submitAssignment(formData: FormData) {
       redirect(`/subjects/${assignment.subject_id}/assignments/${assignmentId}?error=toobig`);
     }
     fileName = file.name;
-    fileData = Buffer.from(await file.arrayBuffer());
+    fileData = compressBuffer(Buffer.from(await file.arrayBuffer()));
   }
   if (!text && !fileName) return;
 

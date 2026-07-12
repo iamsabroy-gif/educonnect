@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { q1 } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 import { getSubjectAccess } from "@/lib/access";
+import { decompressBuffer } from "@/lib/compression";
 
 export async function GET(
   _req: NextRequest,
@@ -31,7 +32,7 @@ export async function GET(
   const allowed = access?.as === "teacher" || row.student_id === user.id;
   if (!allowed) return new NextResponse("Forbidden", { status: 403 });
 
-  return new NextResponse(new Uint8Array(row.file_data), {
+  return new NextResponse(new Uint8Array(decompressBuffer(row.file_data)), {
     headers: {
       "Content-Disposition": `attachment; filename="${encodeURIComponent(row.file_name ?? "submission")}"`,
       "Content-Type": "application/octet-stream",
