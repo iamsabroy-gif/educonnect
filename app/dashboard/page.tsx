@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { requireUser } from "@/lib/auth";
 import { q } from "@/lib/db";
-import { fmtDateTime } from "@/lib/format";
+import { fmtDateTime, fmtRelative } from "@/lib/format";
 import { acceptInvitation, declineInvitation } from "@/lib/actions";
 import { SubmitButton } from "@/components/SubmitButton";
 import { NavButton } from "@/components/NavButton";
@@ -32,6 +32,15 @@ type StudentSubject = {
   next_class: Date | null;
 };
 
+type UpcomingClassAlert = {
+  id: number;
+  title: string;
+  starts_at: string;
+  room_code: string | null;
+  subject_name: string;
+  subject_id: number;
+};
+
 export default async function Dashboard({
   searchParams,
 }: {
@@ -49,6 +58,26 @@ export default async function Dashboard({
   const nowIso = new Date().toISOString();
 
   if (user.role === "teacher") {
+    const tenMinsAgoIso = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+    const tenMinsAheadIso = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+
+    const upcomingAlerts = await q<UpcomingClassAlert>(
+      `SELECT c.id, c.title, c.starts_at, c.room_code, s.name AS subject_name, s.id AS subject_id
+       FROM classes c
+       JOIN subjects s ON s.id = c.subject_id
+       WHERE (
+         s.teacher_id = $1
+         OR EXISTS (
+           SELECT 1 FROM subject_teachers st
+           WHERE st.subject_id = s.id AND st.teacher_id = $1 AND st.status = 'active'
+         )
+       )
+       AND c.starts_at >= $2
+       AND c.starts_at <= $3
+       ORDER BY c.starts_at ASC`,
+      [user.id, tenMinsAgoIso, tenMinsAheadIso]
+    );
+
     const subjects = await q<TeacherSubject>(
       `SELECT s.*,
          (SELECT CAST(COUNT(*) AS INTEGER) FROM enrollments e WHERE e.subject_id = s.id AND e.status = 'active') AS student_count,
@@ -85,6 +114,33 @@ export default async function Dashboard({
           </NavButton>
         </div>
         {welcomeBanner}
+        {upcomingAlerts.length > 0 && (
+          <div className="mt-6 space-y-3">
+            {upcomingAlerts.map((cls) => (
+              <div key={cls.id} className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-red-200 bg-red-50/50 p-4 shadow-sm backdrop-blur-sm animate-pulse">
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl animate-bounce">⏰</span>
+                  <div>
+                    <h4 className="font-bold text-red-900 text-sm">Class starting soon: {cls.title}</h4>
+                    <p className="text-xs text-red-700 font-medium">
+                      Subject: {cls.subject_name} · Starts {fmtRelative(cls.starts_at)}
+                    </p>
+                  </div>
+                </div>
+                {cls.room_code && (
+                  <a
+                    href={`https://meet.jit.si/${cls.room_code}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn bg-red-600 hover:bg-red-700 py-1.5 px-4 text-xs font-semibold text-white whitespace-nowrap"
+                  >
+                    Join Jitsi Meet
+                  </a>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
         {invitations.length > 0 && (
           <div className="mt-6 border-b border-slate-200 pb-6">
             <h2 className="text-lg font-semibold text-slate-800">🔔 Invitations</h2>
@@ -163,6 +219,22 @@ export default async function Dashboard({
   }
 
   // Student dashboard
+  const tenMinsAgoIso = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+  const tenMinsAheadIso = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+
+  const upcomingAlerts = await q<UpcomingClassAlert>(
+    `SELECT c.id, c.title, c.starts_at, c.room_code, s.name AS subject_name, s.id AS subject_id
+     FROM classes c
+     JOIN subjects s ON s.id = c.subject_id
+     JOIN enrollments e ON e.subject_id = s.id
+     WHERE e.student_id = $1
+     AND e.status = 'active'
+     AND c.starts_at >= $2
+     AND c.starts_at <= $3
+     ORDER BY c.starts_at ASC`,
+    [user.id, tenMinsAgoIso, tenMinsAheadIso]
+  );
+
   const subjects = await q<StudentSubject>(
     `SELECT s.id, s.name, s.category, s.schedule, u.name AS teacher_name, e.status,
        (SELECT CAST(COUNT(*) AS INTEGER) FROM assignments a WHERE a.subject_id = s.id AND a.due_at > $2
@@ -185,6 +257,33 @@ export default async function Dashboard({
         </Link>
       </div>
       {welcomeBanner}
+      {upcomingAlerts.length > 0 && (
+        <div className="mt-6 space-y-3">
+          {upcomingAlerts.map((cls) => (
+            <div key={cls.id} className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-red-200 bg-red-50/50 p-4 shadow-sm backdrop-blur-sm animate-pulse">
+              <div className="flex items-center gap-3">
+                <span className="text-2xl animate-bounce">⏰</span>
+                <div>
+                  <h4 className="font-bold text-red-900 text-sm">Class starting soon: {cls.title}</h4>
+                  <p className="text-xs text-red-700 font-medium">
+                    Subject: {cls.subject_name} · Starts {fmtRelative(cls.starts_at)}
+                  </p>
+                </div>
+              </div>
+              {cls.room_code && (
+                <a
+                  href={`https://meet.jit.si/${cls.room_code}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn bg-red-600 hover:bg-red-700 py-1.5 px-4 text-xs font-semibold text-white whitespace-nowrap"
+                >
+                  Join Jitsi Meet
+                </a>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
       {joined === "pending" && (
         <p className="banner-info">
           Join request sent — you&apos;ll get access once the teacher approves it.

@@ -137,10 +137,23 @@ export async function createSubject(formData: FormData) {
       [coTeacherEmail]
     );
     if (coTeacher && coTeacher.id !== user.id) {
-      await q(
-        "INSERT INTO subject_teachers (subject_id, teacher_id, status) VALUES ($1, $2, 'pending')",
-        [row!.id, coTeacher.id]
+      let canSend = true;
+      const lastInvite = await q1<{ created_at: string | Date }>(
+        "SELECT created_at FROM subject_teachers WHERE teacher_id = $1 ORDER BY created_at DESC LIMIT 1",
+        [coTeacher.id]
       );
+      if (lastInvite) {
+        const diffMs = Date.now() - new Date(lastInvite.created_at).getTime();
+        if (diffMs < 2 * 60 * 1000) {
+          canSend = false;
+        }
+      }
+      if (canSend) {
+        await q(
+          "INSERT INTO subject_teachers (subject_id, teacher_id, status) VALUES ($1, $2, 'pending')",
+          [row!.id, coTeacher.id]
+        );
+      }
     }
   }
 
@@ -585,15 +598,28 @@ export async function scheduleClass(formData: FormData) {
       [coTeacherEmail]
     );
     if (coTeacher && coTeacher.id !== user.id) {
-      const existing = await q1(
-        "SELECT 1 FROM subject_teachers WHERE subject_id = $1 AND teacher_id = $2",
-        [subjectId, coTeacher.id]
+      let canSend = true;
+      const lastInvite = await q1<{ created_at: string | Date }>(
+        "SELECT created_at FROM subject_teachers WHERE teacher_id = $1 ORDER BY created_at DESC LIMIT 1",
+        [coTeacher.id]
       );
-      if (!existing) {
-        await q(
-          "INSERT INTO subject_teachers (subject_id, teacher_id, status, class_id) VALUES ($1, $2, 'pending', $3)",
-          [subjectId, coTeacher.id, newClass!.id]
+      if (lastInvite) {
+        const diffMs = Date.now() - new Date(lastInvite.created_at).getTime();
+        if (diffMs < 2 * 60 * 1000) {
+          canSend = false;
+        }
+      }
+      if (canSend) {
+        const existing = await q1(
+          "SELECT 1 FROM subject_teachers WHERE subject_id = $1 AND teacher_id = $2",
+          [subjectId, coTeacher.id]
         );
+        if (!existing) {
+          await q(
+            "INSERT INTO subject_teachers (subject_id, teacher_id, status, class_id) VALUES ($1, $2, 'pending', $3)",
+            [subjectId, coTeacher.id, newClass!.id]
+          );
+        }
       }
     }
   }
