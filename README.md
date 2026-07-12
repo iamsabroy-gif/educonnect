@@ -15,7 +15,7 @@ The app creates its schema and demo seed data automatically on the first request
 
 ## Admin console
 
-Set `ADMIN_EMAILS` (comma-separated) in `.env.local`/Render to grant access to `/admin` for any matching signed-up account's email. It shows platform totals and growth, a searchable per-user activity table (with an inactivity flag for teachers/students who haven't logged in in 30+ days), and a recent-activity feed across the whole platform. Non-admin accounts are redirected away from `/admin` (`requireAdmin()` in `lib/auth.ts`).
+`/admin/login` is a separate, static-credential login — entirely independent of the students/teachers table. Set `ADMIN_USERNAME` and `ADMIN_PASSWORD` in `.env.local`/Render; anyone signing in there gets a signed, HttpOnly session cookie (`lib/admin-auth.ts`) scoped only to `/admin/*`, unrelated to the regular `onlinecoaching_session` cookie. Rotating `ADMIN_PASSWORD` immediately invalidates all existing admin sessions, since the password also signs the session token. The console shows platform totals and growth, a searchable per-user activity table (with an inactivity flag for teachers/students who haven't logged in in 30+ days), and a recent-activity feed across the whole platform.
 
 ## Run locally
 
@@ -50,7 +50,7 @@ Database: Neon free-tier project `neondb` (us-east-1). The app connects directly
    (Neon dashboard → Connect → check "Pooled connection"):
    `postgresql://<user>:<password>@<endpoint>-pooler.<region>.aws.neon.tech/neondb?sslmode=require`
    (Reset the DB password under Project Settings → Reset password if you don't have it.)
-4. Optionally set `ADMIN_EMAILS` to grant `/admin` access (see Admin console below).
+4. Optionally set `ADMIN_USERNAME`/`ADMIN_PASSWORD` to enable `/admin/login` (see Admin console below).
 5. Deploy. The app seeds demo data on first request.
 
 Free-tier behavior to expect:

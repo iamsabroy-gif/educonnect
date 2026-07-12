@@ -5,6 +5,11 @@ import { redirect } from "next/navigation";
 import { q, q1, hashPassword, verifyPassword, generateJoinCode, generateRoomCode } from "./db";
 import { createSession, destroySession, requireUser } from "./auth";
 import { getSubjectAccess as subjectAccess } from "./access";
+import {
+  verifyAdminCredentials,
+  createAdminSession,
+  destroyAdminSession,
+} from "./admin-auth";
 
 const MAX_UPLOAD_BYTES = 5 * 1024 * 1024; // 5 MB
 
@@ -57,6 +62,23 @@ export async function login(formData: FormData) {
 export async function logout() {
   await destroySession();
   redirect("/login");
+}
+
+// ---------- Admin auth (static credentials, independent of the users table) ----------
+
+export async function adminLogin(formData: FormData) {
+  const username = str(formData, "username");
+  const password = String(formData.get("password") ?? "");
+  if (!verifyAdminCredentials(username, password)) {
+    redirect("/admin/login?error=1");
+  }
+  await createAdminSession();
+  redirect("/admin");
+}
+
+export async function adminLogout() {
+  await destroyAdminSession();
+  redirect("/admin/login");
 }
 
 // ---------- Subjects & enrollment ----------

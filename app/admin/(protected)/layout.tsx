@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { requireAdmin } from "@/lib/auth";
+import { requireAdminSession } from "@/lib/admin-auth";
+import { adminLogout } from "@/lib/actions";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  await requireAdmin();
+  await requireAdminSession();
   return (
     <div>
       <div className="mb-6 flex items-center justify-between border-b border-slate-200 pb-4">
@@ -23,9 +24,14 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             </Link>
           </nav>
         </div>
-        <Link href="/dashboard" className="btn-secondary">
-          ← Back to app
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link href="/dashboard" className="btn-secondary">
+            ← Back to app
+          </Link>
+          <form action={adminLogout}>
+            <button className="btn-secondary">Log out</button>
+          </form>
+        </div>
       </div>
       {children}
     </div>

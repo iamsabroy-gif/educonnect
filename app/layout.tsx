@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import "./globals.css";
-import { getCurrentUser, isAdmin } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/auth";
 import { logout } from "@/lib/actions";
 
 export const metadata: Metadata = {
@@ -28,11 +28,6 @@ export default async function RootLayout({
             </Link>
             {user ? (
               <div className="flex items-center gap-3">
-                {isAdmin(user.email) && (
-                  <Link href="/admin" className="btn-ghost">
-                    ⚙ Admin
-                  </Link>
-                )}
                 <span className="hidden text-sm text-slate-600 sm:block">
                   {user.name}
                   <span
