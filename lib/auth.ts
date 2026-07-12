@@ -60,3 +60,23 @@ export async function requireUser(): Promise<User> {
   }
   return user!;
 }
+
+const ADMIN_EMAILS = new Set(
+  (process.env.ADMIN_EMAILS ?? "")
+    .split(",")
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean)
+);
+
+export function isAdmin(email: string): boolean {
+  return ADMIN_EMAILS.has(email.toLowerCase());
+}
+
+export async function requireAdmin(): Promise<User> {
+  const user = await requireUser();
+  if (!isAdmin(user.email)) {
+    const { redirect } = await import("next/navigation");
+    redirect("/dashboard");
+  }
+  return user;
+}

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import "./globals.css";
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentUser, isAdmin } from "@/lib/auth";
 import { logout } from "@/lib/actions";
 
 export const metadata: Metadata = {
@@ -18,16 +18,21 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body>
-        <header className="border-b border-slate-200 bg-white">
+        <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/90 backdrop-blur-sm">
           <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
             <Link href={user ? "/dashboard" : "/"} className="flex items-center gap-2">
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-sm font-bold text-white">
+              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-sm font-bold text-white transition-transform hover:scale-105">
                 O
               </span>
               <span className="text-lg font-semibold tracking-tight">OnlineCoaching</span>
             </Link>
             {user ? (
               <div className="flex items-center gap-3">
+                {isAdmin(user.email) && (
+                  <Link href="/admin" className="btn-ghost">
+                    ⚙ Admin
+                  </Link>
+                )}
                 <span className="hidden text-sm text-slate-600 sm:block">
                   {user.name}
                   <span

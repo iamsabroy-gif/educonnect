@@ -64,6 +64,8 @@ const SCHEMA_SQL = `
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
   );
 
+  ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMPTZ;
+
   CREATE TABLE IF NOT EXISTS sessions (
     token TEXT PRIMARY KEY,
     user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,

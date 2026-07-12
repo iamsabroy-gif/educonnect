@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { signup } from "@/lib/actions";
+import { SubmitButton } from "@/components/SubmitButton";
 
 export default async function SignupPage({
   searchParams,
@@ -17,12 +18,10 @@ export default async function SignupPage({
         </Link>
       </p>
       {error === "exists" && (
-        <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
-          An account with that email already exists.
-        </p>
+        <p className="banner-error">An account with that email already exists.</p>
       )}
       {error === "invalid" && (
-        <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+        <p className="banner-error">
           Please fill all fields. Password must be at least 8 characters.
         </p>
       )}
@@ -52,7 +51,7 @@ export default async function SignupPage({
           <label className="label" htmlFor="password">Password (min. 8 characters)</label>
           <input className="input" id="password" name="password" type="password" minLength={8} required />
         </div>
-        <button className="btn w-full justify-center">Sign up</button>
+        <SubmitButton pendingLabel="Creating account…">Sign up</SubmitButton>
       </form>
     </div>
   );

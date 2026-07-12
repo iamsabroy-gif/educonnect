@@ -13,6 +13,10 @@ All mutations live in `lib/actions.ts`; every action re-checks the caller's role
 
 The app creates its schema and demo seed data automatically on the first request against an empty database (`lib/db.ts`), so a fresh Postgres — local or cloud — needs no manual setup.
 
+## Admin console
+
+Set `ADMIN_EMAILS` (comma-separated) in `.env.local`/Render to grant access to `/admin` for any matching signed-up account's email. It shows platform totals and growth, a searchable per-user activity table (with an inactivity flag for teachers/students who haven't logged in in 30+ days), and a recent-activity feed across the whole platform. Non-admin accounts are redirected away from `/admin` (`requireAdmin()` in `lib/auth.ts`).
+
 ## Run locally
 
 ```bash
@@ -46,7 +50,8 @@ Database: Neon free-tier project `neondb` (us-east-1). The app connects directly
    (Neon dashboard → Connect → check "Pooled connection"):
    `postgresql://<user>:<password>@<endpoint>-pooler.<region>.aws.neon.tech/neondb?sslmode=require`
    (Reset the DB password under Project Settings → Reset password if you don't have it.)
-4. Deploy. The app seeds demo data on first request.
+4. Optionally set `ADMIN_EMAILS` to grant `/admin` access (see Admin console below).
+5. Deploy. The app seeds demo data on first request.
 
 Free-tier behavior to expect:
 

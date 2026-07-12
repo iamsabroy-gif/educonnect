@@ -30,10 +30,16 @@ type StudentSubject = {
 export default async function Dashboard({
   searchParams,
 }: {
-  searchParams: Promise<{ joined?: string }>;
+  searchParams: Promise<{ joined?: string; welcome?: string }>;
 }) {
   const user = await requireUser();
-  const { joined } = await searchParams;
+  const { joined, welcome } = await searchParams;
+
+  const welcomeBanner = welcome === "1" && (
+    <p className="banner-success">
+      🎉 Welcome{user.name ? `, ${user.name}` : ""}! You&apos;re signed in as a {user.role}.
+    </p>
+  );
 
   if (user.role === "teacher") {
     const subjects = await q<TeacherSubject>(
@@ -55,8 +61,9 @@ export default async function Dashboard({
             + New subject
           </Link>
         </div>
+        {welcomeBanner}
         {subjects.length === 0 ? (
-          <div className="card mt-6 text-center text-slate-600">
+          <div className="empty-state">
             <p className="text-3xl">🧑‍🏫</p>
             <p className="mt-2 font-medium">You don&apos;t teach any subjects yet.</p>
             <p className="mt-1 text-sm">
@@ -66,7 +73,7 @@ export default async function Dashboard({
         ) : (
           <div className="mt-6 grid gap-4 sm:grid-cols-2">
             {subjects.map((s) => (
-              <Link key={s.id} href={`/subjects/${s.id}`} className="card hover:border-indigo-300">
+              <Link key={s.id} href={`/subjects/${s.id}`} className="card card-hover">
                 <div className="flex items-start justify-between gap-2">
                   <h2 className="font-semibold">{s.name}</h2>
                   {s.archived ? (
@@ -126,13 +133,14 @@ export default async function Dashboard({
           + Join a subject
         </Link>
       </div>
+      {welcomeBanner}
       {joined === "pending" && (
-        <p className="mt-4 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">
+        <p className="banner-info">
           Join request sent — you&apos;ll get access once the teacher approves it.
         </p>
       )}
       {subjects.length === 0 ? (
-        <div className="card mt-6 text-center text-slate-600">
+        <div className="empty-state">
           <p className="text-3xl">🎓</p>
           <p className="mt-2 font-medium">You&apos;re not enrolled in any subjects yet.</p>
           <p className="mt-1 text-sm">Ask your teacher for a join code to get started.</p>
@@ -149,7 +157,7 @@ export default async function Dashboard({
                 <p className="mt-0.5 text-sm text-slate-500">{s.teacher_name}</p>
               </div>
             ) : (
-              <Link key={s.id} href={`/subjects/${s.id}`} className="card hover:border-indigo-300">
+              <Link key={s.id} href={`/subjects/${s.id}`} className="card card-hover">
                 <div className="flex items-start justify-between gap-2">
                   <h2 className="font-semibold">{s.name}</h2>
                   {s.open_assignments > 0 && (

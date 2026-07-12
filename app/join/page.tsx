@@ -18,14 +18,10 @@ export default async function JoinPage({
         Enter the 6-character code your teacher shared with you.
       </p>
       {error === "notfound" && (
-        <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
-          No subject found with that code. Double-check and try again.
-        </p>
+        <p className="banner-error">No subject found with that code. Double-check and try again.</p>
       )}
       {error === "pending" && (
-        <p className="mt-4 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">
-          You already have a pending request for this subject.
-        </p>
+        <p className="banner-info">You already have a pending request for this subject.</p>
       )}
       <form action={joinSubject} className="card mt-6 space-y-4">
         <div>

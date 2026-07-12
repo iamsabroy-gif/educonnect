@@ -34,8 +34,9 @@ export async function signup(formData: FormData) {
     "INSERT INTO users (name, email, password_hash, role) VALUES ($1, $2, $3, $4) RETURNING id",
     [name, email, hashPassword(password), role]
   );
+  await q("UPDATE users SET last_login_at = now() WHERE id = $1", [row!.id]);
   await createSession(row!.id);
-  redirect("/dashboard");
+  redirect("/dashboard?welcome=1");
 }
 
 export async function login(formData: FormData) {
@@ -48,8 +49,9 @@ export async function login(formData: FormData) {
   if (!user || !verifyPassword(password, user.password_hash)) {
     redirect("/login?error=1");
   }
+  await q("UPDATE users SET last_login_at = now() WHERE id = $1", [user!.id]);
   await createSession(user!.id);
-  redirect("/dashboard");
+  redirect("/dashboard?welcome=1");
 }
 
 export async function logout() {
