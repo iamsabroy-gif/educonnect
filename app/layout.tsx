@@ -2,8 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import "./globals.css";
 import { getCurrentUser } from "@/lib/auth";
-import { logout } from "@/lib/actions";
-import { SubmitButton } from "@/components/SubmitButton";
+import { LogoutButton } from "@/components/LogoutButton";
 
 export const metadata: Metadata = {
   title: "OnlineCoaching",
@@ -41,9 +40,7 @@ export default async function RootLayout({
                     {user.role}
                   </span>
                 </span>
-                <form action={logout}>
-                  <SubmitButton className="btn-secondary" pendingLabel="Logging out…">Log out</SubmitButton>
-                </form>
+                <LogoutButton />
               </div>
             ) : (
               <div className="flex items-center gap-2">
