@@ -195,6 +195,22 @@ export async function updateSubject(formData: FormData) {
   redirect(`/subjects/${subjectId}`);
 }
 
+export async function deleteSubject(formData: FormData) {
+  const user = await requireUser();
+  if (user.role !== "teacher") return;
+  const subjectId = num(formData, "subject_id");
+  // Only the primary (owner) teacher may delete — co-teachers cannot
+  const subject = await q1<{ teacher_id: number }>(
+    "SELECT teacher_id FROM subjects WHERE id = $1",
+    [subjectId]
+  );
+  if (!subject || subject.teacher_id !== user.id) return;
+  // Child rows cascade automatically (enrollments, classes, threads, etc.)
+  await q("DELETE FROM subjects WHERE id = $1", [subjectId]);
+  revalidatePath("/dashboard");
+  redirect("/dashboard");
+}
+
 export async function setFeePaid(formData: FormData) {
   const user = await requireUser();
   const enrollmentId = num(formData, "enrollment_id");
