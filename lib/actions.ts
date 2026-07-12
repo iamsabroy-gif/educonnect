@@ -192,6 +192,7 @@ export async function updateSubject(formData: FormData) {
     ]
   );
   revalidatePath(`/subjects/${subjectId}`, "layout");
+  redirect(`/subjects/${subjectId}`);
 }
 
 export async function setFeePaid(formData: FormData) {
