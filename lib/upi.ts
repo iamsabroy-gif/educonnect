@@ -8,9 +8,11 @@ export function isValidUpiId(upiId: string): boolean {
 export function buildUpiUri(opts: {
   payeeUpiId: string;
   payeeName: string;
-  amount?: number | null;
+  /** Rupees (not paise). Strings are coerced: pg returns NUMERIC columns as strings. */
+  amount?: number | string | null;
   note?: string;
 }): string {
+  const amount = opts.amount == null ? null : Number(opts.amount);
   // Build the UPI deep-link manually.
   //
   // Why NOT URLSearchParams.toString():
@@ -28,7 +30,9 @@ export function buildUpiUri(opts: {
     `pn=${encodeURIComponent(opts.payeeName)}`,     // payee name: spaces → %20
     `cu=INR`,
   ];
-  if (opts.amount) parts.push(`am=${opts.amount.toFixed(2)}`);
+  if (amount != null && Number.isFinite(amount) && amount > 0) {
+    parts.push(`am=${amount.toFixed(2)}`);
+  }
   if (opts.note)   parts.push(`tn=${encodeURIComponent(opts.note)}`);
 
   return `upi://pay?${parts.join("&")}`;

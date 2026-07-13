@@ -167,7 +167,9 @@ export async function updateSubject(formData: FormData) {
   if (access?.as !== "teacher") return;
 
   const feeAmountRaw = str(formData, "fee_amount");
-  const feeAmount = feeAmountRaw ? Math.max(0, Number(feeAmountRaw)) : null;
+  const feeAmountNum = Number(feeAmountRaw);
+  const feeAmount =
+    feeAmountRaw && Number.isFinite(feeAmountNum) ? Math.max(0, feeAmountNum) : null;
   const feeUpiId = str(formData, "fee_upi_id");
   if (feeUpiId && !isValidUpiId(feeUpiId)) {
     redirect(`/subjects/${subjectId}/settings?error=upi`);

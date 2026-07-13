@@ -31,6 +31,9 @@ export async function getSubjectAccess(
   if (!Number.isInteger(subjectId)) return null;
   const subject = await q1<SubjectRow>("SELECT * FROM subjects WHERE id = $1", [subjectId]);
   if (!subject) return null;
+  // Postgres NUMERIC arrives as a string via `pg` (SQLite REAL is already a
+  // number) — normalize so callers can safely do arithmetic and .toFixed().
+  subject.fee_amount = subject.fee_amount == null ? null : Number(subject.fee_amount);
   if (subject.teacher_id === userId) return { subject, as: "teacher" };
   const coTeacher = await q1(
     "SELECT 1 FROM subject_teachers WHERE subject_id = $1 AND teacher_id = $2 AND status = 'active'",
