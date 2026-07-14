@@ -5,6 +5,7 @@ import { fmtDateTime, fmtRelative } from "@/lib/format";
 import { acceptInvitation, declineInvitation } from "@/lib/actions";
 import { SubmitButton } from "@/components/SubmitButton";
 import { NavButton } from "@/components/NavButton";
+import { JoinClassButton } from "@/components/JoinClassButton";
 
 
 
@@ -128,14 +129,11 @@ export default async function Dashboard({
                   </div>
                 </div>
                 {cls.room_code && (
-                  <a
-                    href={`https://meet.jit.si/${cls.room_code}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <JoinClassButton
+                    roomCode={cls.room_code}
+                    label="Join Jitsi Meet"
                     className="btn bg-red-600 hover:bg-red-700 py-1.5 px-4 text-xs font-semibold text-white whitespace-nowrap"
-                  >
-                    Join Jitsi Meet
-                  </a>
+                  />
                 )}
               </div>
             ))}
@@ -271,14 +269,11 @@ export default async function Dashboard({
                 </div>
               </div>
               {cls.room_code && (
-                <a
-                  href={`https://meet.jit.si/${cls.room_code}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <JoinClassButton
+                  roomCode={cls.room_code}
+                  label="Join Jitsi Meet"
                   className="btn bg-red-600 hover:bg-red-700 py-1.5 px-4 text-xs font-semibold text-white whitespace-nowrap"
-                >
-                  Join Jitsi Meet
-                </a>
+                />
               )}
             </div>
           ))}

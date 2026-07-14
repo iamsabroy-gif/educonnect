@@ -6,6 +6,7 @@ import { fmtDateTime, fmtRelative, toDate } from "@/lib/format";
 import { scheduleClass, deleteClass } from "@/lib/actions";
 import { SubmitButton } from "@/components/SubmitButton";
 import { EmailAutocomplete } from "@/components/EmailAutocomplete";
+import { JoinClassButton } from "@/components/JoinClassButton";
 
 
 
@@ -108,14 +109,11 @@ export default async function ClassesPage({
                   </div>
                   <div className="flex items-center gap-2">
                     {c.room_code && (
-                      <a
-                        href={`https://meet.jit.si/${c.room_code}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                      <JoinClassButton
+                        roomCode={c.room_code}
+                        label={live ? "● Join now" : "Join class"}
                         className={live ? "btn bg-red-600 hover:bg-red-700" : "btn"}
-                      >
-                        {live ? "● Join now" : "Join class"}
-                      </a>
+                      />
                     )}
                     {access.as === "teacher" && (
                       <form action={deleteClass}>
