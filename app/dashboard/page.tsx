@@ -128,12 +128,14 @@ export default async function Dashboard({
                   </div>
                 </div>
                 {cls.room_code && (
-                  <Link
-                    href={`/live/${cls.room_code}`}
+                  <a
+                    href={`https://meet.jit.si/${cls.room_code}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="btn bg-red-600 hover:bg-red-700 py-1.5 px-4 text-xs font-semibold text-white whitespace-nowrap"
                   >
                     Join Jitsi Meet
-                  </Link>
+                  </a>
                 )}
               </div>
             ))}
@@ -269,12 +271,14 @@ export default async function Dashboard({
                 </div>
               </div>
               {cls.room_code && (
-                <Link
-                  href={`/live/${cls.room_code}`}
+                <a
+                  href={`https://meet.jit.si/${cls.room_code}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="btn bg-red-600 hover:bg-red-700 py-1.5 px-4 text-xs font-semibold text-white whitespace-nowrap"
                 >
                   Join Jitsi Meet
-                </Link>
+                </a>
               )}
             </div>
           ))}
