@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { requireUser } from "@/lib/auth";
 import { getSubjectAccess } from "@/lib/access";
 import { q } from "@/lib/db";
@@ -108,14 +109,12 @@ export default async function ClassesPage({
                   </div>
                   <div className="flex items-center gap-2">
                     {c.room_code && (
-                      <a
-                        href={`https://meet.jit.si/${c.room_code}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                      <Link
+                        href={`/live/${c.room_code}`}
                         className={live ? "btn bg-red-600 hover:bg-red-700" : "btn"}
                       >
                         {live ? "● Join now" : "Join class"}
-                      </a>
+                      </Link>
                     )}
                     {access.as === "teacher" && (
                       <form action={deleteClass}>
