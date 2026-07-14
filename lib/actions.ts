@@ -6,6 +6,7 @@ import { q, q1, hashPassword, verifyPassword, generateJoinCode, generateRoomCode
 import { createSession, destroySession, requireUser } from "./auth";
 import { getSubjectAccess as subjectAccess } from "./access";
 import { compressBuffer } from "./compression";
+import { fromISTInputValue } from "./format";
 import { isValidUpiId } from "./upi";
 import { sendMail, buildWelcomeEmail, buildClassScheduledEmail } from "./email";
 import {
@@ -409,7 +410,7 @@ export async function createAssignment(formData: FormData) {
       subjectId,
       title,
       str(formData, "instructions"),
-      new Date(dueAt).toISOString(),
+      fromISTInputValue(dueAt),
       maxMarksRaw ? Number(maxMarksRaw) : null,
       str(formData, "late_policy") === "block" ? "block" : "allow_late",
     ]
@@ -599,12 +600,13 @@ export async function scheduleClass(formData: FormData) {
   const title = str(formData, "title");
   const startsAt = str(formData, "starts_at");
   if (!title || !startsAt) return;
+  const startsAtIso = fromISTInputValue(startsAt);
   const newClass = await q1<{ id: number }>(
     "INSERT INTO classes (subject_id, title, starts_at, duration_min, room_code) VALUES ($1, $2, $3, $4, $5) RETURNING id",
     [
       subjectId,
       title,
-      new Date(startsAt).toISOString(),
+      startsAtIso,
       num(formData, "duration_min") || 60,
       generateRoomCode(),
     ]
@@ -655,7 +657,7 @@ export async function scheduleClass(formData: FormData) {
       if (!students.length) return;
       const subject = await q1<{ name: string }>("SELECT name FROM subjects WHERE id = $1", [subjectId]);
       const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000";
-      const startsAtFormatted = new Date(startsAt).toLocaleString("en-IN", {
+      const startsAtFormatted = new Date(startsAtIso).toLocaleString("en-IN", {
         dateStyle: "full",
         timeStyle: "short",
         timeZone: "Asia/Kolkata",
