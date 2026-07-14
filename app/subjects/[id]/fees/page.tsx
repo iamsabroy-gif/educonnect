@@ -4,6 +4,7 @@ import { getSubjectAccess } from "@/lib/access";
 import { q1 } from "@/lib/db";
 import { fmtDateTime } from "@/lib/format";
 import { buildUpiUri, buildUpiQrDataUrl } from "@/lib/upi";
+import { UpiPayActions } from "@/components/UpiPayActions";
 
 export default async function FeesPage({
   params,
@@ -57,10 +58,10 @@ export default async function FeesPage({
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={qrDataUrl} alt="UPI payment QR code" className="mx-auto mt-4 h-56 w-56" />
 
-        <p className="mt-3 text-xs text-slate-500">Scan with any UPI app, or tap below on mobile</p>
-        <a href={upiUri} className="btn mt-3 inline-flex justify-center">
-          Pay with UPI app
-        </a>
+        <p className="mt-3 text-xs text-slate-500">
+          Scan with any UPI app, or copy the UPI ID and pay manually
+        </p>
+        <UpiPayActions upiUri={upiUri} upiId={subject.fee_upi_id} />
 
         <div className="mt-4 rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-500">
           Paying: <span className="font-mono">{subject.fee_upi_id}</span> ({teacher.name})
