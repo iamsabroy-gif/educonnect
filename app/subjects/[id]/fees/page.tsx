@@ -61,7 +61,7 @@ export default async function FeesPage({
         <p className="mt-3 text-xs text-slate-500">
           Scan with any UPI app, or copy the UPI ID and pay manually
         </p>
-        <UpiPayActions upiUri={upiUri} upiId={subject.fee_upi_id} />
+        <UpiPayActions upiId={subject.fee_upi_id} />
 
         <div className="mt-4 rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-500">
           Paying: <span className="font-mono">{subject.fee_upi_id}</span> ({teacher.name})
