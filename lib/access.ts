@@ -22,6 +22,34 @@ export type SubjectAccess = {
   as: "teacher" | "student";
 };
 
+export type ClassRow = {
+  id: number;
+  subject_id: number;
+  title: string;
+  starts_at: Date | string;
+  duration_min: number;
+};
+
+/**
+ * Resolve a video room code to its class and the viewer's subject access.
+ * Null means the room doesn't exist or the viewer isn't part of the subject.
+ */
+export async function getRoomAccess(
+  roomCode: string,
+  userId: number,
+  role: string
+): Promise<{ cls: ClassRow; access: SubjectAccess } | null> {
+  if (!roomCode) return null;
+  const cls = await q1<ClassRow>(
+    "SELECT id, subject_id, title, starts_at, duration_min FROM classes WHERE room_code = $1",
+    [roomCode]
+  );
+  if (!cls) return null;
+  const access = await getSubjectAccess(cls.subject_id, userId, role);
+  if (!access) return null;
+  return { cls, access };
+}
+
 /** Resolve the viewer's relationship to a subject. Null means no access. */
 export async function getSubjectAccess(
   subjectId: number,

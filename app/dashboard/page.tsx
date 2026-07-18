@@ -131,7 +131,7 @@ export default async function Dashboard({
                 {cls.room_code && (
                   <JoinClassButton
                     roomCode={cls.room_code}
-                    label="Join Jitsi Meet"
+                    label="Join live class"
                     className="btn bg-red-600 hover:bg-red-700 py-1.5 px-4 text-xs font-semibold text-white whitespace-nowrap"
                   />
                 )}
@@ -271,7 +271,7 @@ export default async function Dashboard({
               {cls.room_code && (
                 <JoinClassButton
                   roomCode={cls.room_code}
-                  label="Join Jitsi Meet"
+                  label="Join live class"
                   className="btn bg-red-600 hover:bg-red-700 py-1.5 px-4 text-xs font-semibold text-white whitespace-nowrap"
                 />
               )}

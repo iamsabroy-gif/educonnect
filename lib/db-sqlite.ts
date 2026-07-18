@@ -166,6 +166,27 @@ const SCHEMA_SQL = `
     created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
     UNIQUE (subject_id, teacher_id)
   );
+
+  CREATE TABLE IF NOT EXISTS call_peers (
+    room_code TEXT NOT NULL,
+    peer_id TEXT NOT NULL,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    last_seen TEXT NOT NULL,
+    PRIMARY KEY (room_code, peer_id)
+  );
+
+  CREATE TABLE IF NOT EXISTS call_signals (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    room_code TEXT NOT NULL,
+    from_peer TEXT NOT NULL,
+    to_peer TEXT NOT NULL,
+    type TEXT NOT NULL,
+    payload TEXT NOT NULL,
+    created_at TEXT NOT NULL
+  );
+
+  CREATE INDEX IF NOT EXISTS call_signals_to_idx ON call_signals (room_code, to_peer, id);
 `;
 
 async function seed(client: Client) {

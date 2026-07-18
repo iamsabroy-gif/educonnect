@@ -50,11 +50,9 @@ export default async function ClassesPage({
   return (
     <div className="space-y-6">
       <p className="rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-2 text-xs text-indigo-800">
-        🎥 Video runs on Jitsi Meet — each class gets its own private room link, visible only to
-        people enrolled here.
-        {access.as === "teacher" &&
-          " Join a couple of minutes early: the first person to start the room may be asked by Jitsi to sign in (Google/GitHub) to become moderator."}{" "}
-        Recordings and auto-attendance arrive in v1.1.
+        🎥 Video calls run right here in EduConnect — no external app or sign-in. Each class gets
+        its own private room, visible only to people enrolled here. Best for one-to-one and
+        small-group sessions (up to ~4 people). Recordings and auto-attendance arrive in v1.1.
       </p>
 
       {access.as === "teacher" && (

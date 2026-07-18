@@ -10,7 +10,7 @@ export default async function Home() {
     ["📢", "Announcements", "One-way broadcast from teacher to every enrolled student."],
     ["📝", "Assignments", "Distribute work, collect submissions, track status, give feedback."],
     ["💬", "Discussions", "Topic-based threads with replies, upvotes, and moderation."],
-    ["🎥", "Live classes", "Schedule sessions and meet in private Jitsi video rooms."],
+    ["🎥", "Live classes", "Schedule sessions and meet in private built-in video rooms."],
   ];
 
   return (

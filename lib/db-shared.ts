@@ -25,7 +25,7 @@ export function generateJoinCode(): string {
   return code;
 }
 
-/** Unguessable Jitsi room slug for a live class. */
+/** Unguessable video room slug for a live class. */
 export function generateRoomCode(): string {
   return "onlinecoaching-" + crypto.randomBytes(8).toString("hex");
 }
